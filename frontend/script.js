@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let videoData = {};
 
   // Load JSON chứa thông tin video
-  fetch("final_videos.json") // dùng đường dẫn tương đối, file này phải nằm cùng thư mục với index.html
+  fetch("final_videos.json")
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       return res.json();
@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((data) => {
       videoData = data;
       console.log("✅ Đã load final_videos.json:", videoData);
-      console.log("Danh sách keys:", Object.keys(videoData));
     })
     .catch((err) => console.error("❌ Lỗi load JSON:", err));
 
@@ -30,21 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("info-frame").innerText.trim()
     );
 
-    console.log("👉 Video ID lấy được:", videoId);
-    console.log("👉 Frame Index lấy được:", frameIndex);
-
     if (videoData && videoData[videoId]) {
       const url = videoData[videoId].watch_url;
       const fps = videoData[videoId].fps;
-
       const seconds = Math.floor(frameIndex / fps);
-      const youtubeUrl = `${url}&t=${seconds}s.`;
-
-      console.log("🔗 Mở link:", youtubeUrl);
+      const youtubeUrl = `${url}&t=${seconds}s`;
       window.open(youtubeUrl, "_blank");
     } else {
       alert(`Không tìm thấy video [${videoId}] trong JSON!`);
-      console.warn("Danh sách keys trong JSON:", Object.keys(videoData));
     }
   });
 
@@ -58,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Hằng số host ---
   const HOST = "http://127.0.0.1:5000";
-  const addHost = (p) => (p?.startsWith("http") ? p : `${HOST}${p}`);
+  const addHost = (p) => (p ? (p.startsWith("http") ? p : `${HOST}${p}`) : "");
   const normalizePathFromSrc = (src) => {
     try {
       return new URL(src, HOST).pathname;
@@ -74,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const colors = colorInput.value.trim();
     const ocr = ocrInput.value.trim();
     const modeSelect = document.getElementById("model-select");
-    const mode = modeSelect.value || "apple"; // default Apple
+    const mode = modeSelect.value || "apple";
     if (!query) {
       alert("Please enter a search query.");
       return;
@@ -143,51 +135,27 @@ document.addEventListener("DOMContentLoaded", () => {
       imgElement.src = addHost(item.path);
       imgElement.alt = item.path;
       imgElement.loading = "lazy";
-
-      // Lưu lại path gốc (để parse videoId, frameId sau này)
       imgElement.dataset.pathNormalized = item.path;
 
-      // Nếu có map sẵn videoId thì gắn vào dataset
       const maybeVideoId = pathToVideoIdMap.get(item.path);
       if (maybeVideoId) imgElement.dataset.videoId = maybeVideoId;
-
-      // Khi click ảnh → mở modal + hiển thị thông tin
-      imgElement.addEventListener("click", () => {
-        // Parse từ path gốc
-        const { videoId, frameId } = parseVideoAndFrame(
-          imgElement.dataset.pathNormalized
-        );
-
-        // Gắn vào HTML
-        document.getElementById("info-videoid").textContent = videoId;
-        document.getElementById("info-frame").textContent = frameId;
-
-        // Mở modal hiển thị ảnh
-        openModal(imgElement.src);
-      });
 
       gallery.appendChild(imgElement);
     });
   }
 
-  // --- Hiển thị theo video ---
-
+  // --- Parse video/frame từ path ---
   function parseVideoAndFrame(path) {
-    // Thay \ thành / cho đồng nhất
+    if (!path) return { videoId: "-", frameId: "-" };
     const normalized = path.replace(/\\/g, "/");
-
-    // Tách các phần
     const parts = normalized.split("/");
-
-    // Video ID = thư mục chứa file
-    const videoId = parts[parts.length - 2];
-
-    // Frame ID = tên file không có đuôi
-    const filename = parts[parts.length - 1];
-    const frameId = filename.split(".")[0];
-
+    const videoId = parts[parts.length - 2] || "-";
+    const filename = parts[parts.length - 1] || "";
+    const frameId = filename.split(".")[0] || "-";
     return { videoId, frameId };
   }
+
+  // --- Hiển thị theo video ---
   function displayVideoResults(videoResults) {
     gallery.innerHTML = "";
     if (!videoResults || videoResults.length === 0) {
@@ -200,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const videoGroup = document.createElement("div");
       videoGroup.className = "video-group";
 
-      // Tiêu đề
       const title = document.createElement("h3");
       title.className = "video-title";
       title.textContent = `Video: ${
@@ -208,7 +175,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } (Score: ${video.video_score.toFixed(3)})`;
       videoGroup.appendChild(title);
 
-      // Ảnh chính
       let groupIndex = 0;
       const mainImg = document.createElement("img");
       const bestFrame = video.frames?.length > 0 ? video.frames[0].path : null;
@@ -235,7 +201,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const prevBtn = document.createElement("button");
       prevBtn.textContent = "<";
       prevBtn.className = "nav-btn left-btn";
-
       const nextBtn = document.createElement("button");
       nextBtn.textContent = ">";
       nextBtn.className = "nav-btn right-btn";
@@ -267,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
       videoGroup.appendChild(prevBtn);
       videoGroup.appendChild(nextBtn);
 
-      // Thumbnail neighbor (giữ nguyên logic cũ: hiển thị lân cận ~5 cái)
+      // Thumbnails lân cận
       const thumbsContainer = document.createElement("div");
       thumbsContainer.className = "neighbor-frames";
       videoGroup.appendChild(thumbsContainer);
@@ -299,8 +264,8 @@ document.addEventListener("DOMContentLoaded", () => {
           thumbsContainer.appendChild(thumb);
         }
       }
-
       renderThumbs();
+
       gallery.appendChild(videoGroup);
     });
   }
@@ -323,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalThumbs = document.getElementById("modal-thumbs");
   const prevBtn = document.getElementById("prev-btn");
   const nextBtn = document.getElementById("next-btn");
-  const modalPanel = modal.querySelector(".modal-panel"); // vùng trắng
+  const modalPanel = modal.querySelector(".modal-panel");
 
   let allImages = [];
   let currentIndex = 0;
@@ -339,56 +304,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (clickedVideoId && videoIdToAllFramesMap.has(clickedVideoId)) {
       const listRel = videoIdToAllFramesMap.get(clickedVideoId) || [];
-      allImages = listRel.map(addHost);
-      let idx = listRel.indexOf(clickedRelPath);
-      if (idx < 0) {
-        idx = listRel.findIndex(
-          (p) => addHost(p) === e.target.src || e.target.src.endsWith(p)
-        );
+      if (listRel.length > 0) {
+        allImages = listRel.map(addHost);
+        let idx = listRel.indexOf(clickedRelPath);
+        if (idx < 0) {
+          idx = listRel.findIndex(
+            (p) => addHost(p) === e.target.src || e.target.src.endsWith(p)
+          );
+        }
+        currentIndex = Math.max(0, idx);
+      } else {
+        allImages = [e.target.src];
+        currentIndex = 0;
       }
-      currentIndex = Math.max(0, idx);
     } else {
       allImages = Array.from(gallery.querySelectorAll("img")).map(
         (img) => img.src
       );
       currentIndex = allImages.indexOf(e.target.src);
+      if (currentIndex < 0) currentIndex = 0;
     }
 
     openModal(currentIndex);
   });
 
-  function openModal(index) {
-    modal.style.display = "flex"; // flex để căn giữa panel
-    showImage(index);
+  function openModal(index = 0) {
+    if (!Array.isArray(allImages) || allImages.length === 0) {
+      console.warn("openModal: allImages rỗng");
+      return;
+    }
+    currentIndex = Math.max(0, Math.min(index, allImages.length - 1));
+    modal.style.display = "flex";
+    showImage(currentIndex);
   }
 
   function showImage(index) {
-    // Giữ index trong khoảng hợp lệ
+    if (!Array.isArray(allImages) || allImages.length === 0) return;
     currentIndex = Math.max(0, Math.min(index, allImages.length - 1));
-
-    // Lấy đường dẫn ảnh
     const imgSrc = allImages[currentIndex];
+    if (!imgSrc) return;
+
     modalImg.src = imgSrc;
-
-    // 🔥 Cập nhật Video ID và Frame ID
-    // B1: Chuẩn hóa path từ src (loại bỏ host nếu có)
-    const normalizedPath = imgSrc.replace(/^https?:\/\/[^/]+/, "");
-
-    // B2: Parse để lấy videoId và frameId
+    const normalizedPath = normalizePathFromSrc(imgSrc);
     const { videoId, frameId } = parseVideoAndFrame(normalizedPath);
-
-    // B3: Gán vào HTML
     document.getElementById("info-videoid").textContent = videoId;
     document.getElementById("info-frame").textContent = frameId;
-
-    // Render thumbnail xung quanh ảnh hiện tại
     renderNeighbors();
   }
 
-  // Hiển thị 20 ảnh trước + 20 ảnh sau, bỏ qua ảnh chính
   function renderNeighbors() {
     modalThumbs.innerHTML = "";
-
     const total = allImages.length;
     const start = Math.max(0, currentIndex - 20);
     const end = Math.min(total - 1, currentIndex + 20);
@@ -405,37 +370,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Nút prev
   prevBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (currentIndex > 0) showImage(currentIndex - 1);
   });
-
-  // Nút next
   nextBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (currentIndex < allImages.length - 1) showImage(currentIndex + 1);
   });
 
-  // Bắt sự kiện bàn phím
   document.addEventListener("keydown", (e) => {
     if (modal.style.display !== "flex") return;
-    if (e.key === "ArrowLeft") {
-      if (currentIndex > 0) showImage(currentIndex - 1);
-    } else if (e.key === "ArrowRight") {
-      if (currentIndex < allImages.length - 1) showImage(currentIndex + 1);
+    if (e.key === "ArrowLeft" && currentIndex > 0) {
+      showImage(currentIndex - 1);
+    } else if (e.key === "ArrowRight" && currentIndex < allImages.length - 1) {
+      showImage(currentIndex + 1);
     } else if (e.key === "Escape") {
       modal.style.display = "none";
     }
   });
 
-  // Đóng modal
   modalClose.addEventListener("click", (e) => {
     e.stopPropagation();
     modal.style.display = "none";
   });
   modal.addEventListener("click", () => (modal.style.display = "none"));
-
-  // Chặn click trong panel trắng làm tắt modal
   modalPanel.addEventListener("click", (e) => e.stopPropagation());
 });
