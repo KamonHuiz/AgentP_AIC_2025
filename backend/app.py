@@ -178,5 +178,6 @@ def search_endpoint():
 @app.route("/images/<path:filename>")
 def serve_image(filename):
     return send_from_directory(config.IMAGE_BASE_PATH, filename)
+
 if __name__ == "__main__":
     app.run(host=config.HOST, port=config.PORT, debug=False)
