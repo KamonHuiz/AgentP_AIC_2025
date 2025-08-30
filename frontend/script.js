@@ -8,6 +8,46 @@ document.addEventListener("DOMContentLoaded", () => {
   const topkInput = document.getElementById("topk-input");
   const gallery = document.getElementById("gallery");
   const viewModeToggle = document.getElementById("view-mode-toggle");
+  let videoData = {};
+
+  // Load JSON chứa thông tin video
+  fetch("final_videos.json") // dùng đường dẫn tương đối, file này phải nằm cùng thư mục với index.html
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      videoData = data;
+      console.log("✅ Đã load final_videos.json:", videoData);
+      console.log("Danh sách keys:", Object.keys(videoData));
+    })
+    .catch((err) => console.error("❌ Lỗi load JSON:", err));
+
+  // Bắt sự kiện cho nút mở YouTube
+  document.getElementById("open-youtube-btn").addEventListener("click", () => {
+    const videoId = document.getElementById("info-videoid").innerText.trim();
+    const frameIndex = parseInt(
+      document.getElementById("info-frame").innerText.trim()
+    );
+
+    console.log("👉 Video ID lấy được:", videoId);
+    console.log("👉 Frame Index lấy được:", frameIndex);
+
+    if (videoData && videoData[videoId]) {
+      const url = videoData[videoId].watch_url;
+      const fps = videoData[videoId].fps;
+
+      const seconds = Math.floor(frameIndex / fps);
+      const youtubeUrl = `${url}&t=${seconds}s.`;
+
+      console.log("🔗 Mở link:", youtubeUrl);
+      window.open(youtubeUrl, "_blank");
+    } else {
+      alert(`Không tìm thấy video [${videoId}] trong JSON!`);
+      console.warn("Danh sách keys trong JSON:", Object.keys(videoData));
+    }
+  });
+
   // --- Biến trạng thái ---
   let fullData = null;
   let currentViewMode = "frame"; // mặc định xem theo frame
