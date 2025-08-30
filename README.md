@@ -1,5 +1,7 @@
 # video_retrieval_aic_2025
+
 # AIC_System
+
 Agent P Baseline
 
 ## Cài đặt môi trường
@@ -30,15 +32,21 @@ git push                    # Đẩy code lên
 # KHÁC
 git restore .               # Hủy mọi thay đổi local (nếu cần)
 ```
+
 ## Tải data
+
 1. Vào folders rồi tải
-https://drive.google.com/file/d/1RKP9qUZcxYN17NZfpvt3sof2GYpvmXr2/view?usp=sharing
+   https://drive.google.com/file/d/1RKP9qUZcxYN17NZfpvt3sof2GYpvmXr2/view?usp=sharing
 
 ## Run system
+
 cd vô backend
 Terminal 1
 python app.py
 
 cd vô frontend
-Terminal 2 
-python -m http.server 8000
+Terminal 2
+python -m http.server
+
+truy cập đường dẫn sau
+http://localhost:8000/index.html
