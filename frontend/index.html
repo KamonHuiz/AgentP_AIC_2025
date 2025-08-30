@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Retrieval</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-container">
+
+        <div class="controls-panel">
+            <h2>Điều khiển</h2>
+    
+        <div class="toggle-grid-container">
+            <button id="view-mode-toggle" class="grid-button">View by Video</button>
+
+            <!-- Dropdown chọn model -->
+            <select id="model-select" class="grid-button">
+                <option value="apple" selected>Apple</option>
+                <option value="siglip">SigLip</option>
+                <option value="openclip">OpenCLIP</option>
+            </select>
+
+            <button class="grid-button placeholder-button">Tool 3</button>
+            <button class="grid-button placeholder-button">Tool 4</button>
+        </div>
+
+            <div class="control-group">
+                <label for="query-input">CLIP Search</label>
+                <textarea id="query-input" placeholder="Enter your query..."></textarea>
+            </div>     
+
+            <div class="control-group">
+                <label for="ocr-input">Filter by OCR</label>
+                <input type="text" id="ocr-input" placeholder="Enter OCR text...">
+            </div>
+
+            <div class="control-group">
+                <label for="color-input">Colors Filter</label>
+                <input type="text" id="color-input" placeholder="e.g., red, blue...">
+            </div>
+
+            <div class="control-group">
+                <label for="topk-input">Top K</label>
+                <input type="number" id="topk-input" value="500">
+            </div>
+
+            <button id="search-button">Search</button>
+        </div>
+
+        <div class="gallery-panel">
+            <div id="gallery" class="gallery">
+                <p class="placeholder">Results will be displayed here.</p>
+            </div>
+        </div>
+
+    </div>
+        <!-- Modal -->
+    <div id="image-modal" class="modal">
+    <button class="modal-close" aria-label="Close">&times;</button>
+
+    <!-- Bảng trắng chứa ảnh -->
+    <div class="modal-panel">
+        <!-- Bên trái 30% -->
+        <div class="modal-left">
+            <div class="modal-main">
+                <button id="prev-btn" class="nav-btn">&#10094;</button>
+                <img class="modal-content" id="modal-img">
+                <button id="next-btn" class="nav-btn">&#10095;</button>
+            </div>
+
+            <!-- 🆕 Bảng thông tin dưới ảnh -->
+            <div class="modal-info" id="modal-info">
+                <p><strong>Video ID:</strong> <span id="info-videoid">-</span></p>
+                <p><strong>Frame Index:</strong> <span id="info-frame">-</span></p>
+            </div>
+
+             <div class="control-group">
+                    <label for="Q&A-input">Q&A</label>
+                    <input type="text" id="Q&A-input" placeholder="Anything...">
+            </div>
+        </div>
+
+
+        <!-- Bên phải 70% -->
+        <div class="panel-right">
+        <div id="modal-thumbs" class="thumbs"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
