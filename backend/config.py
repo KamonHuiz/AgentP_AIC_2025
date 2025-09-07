@@ -25,6 +25,7 @@ MILVUS_PORT = '19530'
 COLLECTION_HNSW_OPENCLIP = 'video_retrieval_final'
 COLLECTION_HNSW_SIGLIP = 'video_retrieval_siglip'
 COLLECTION_HNSW_APPLE = 'video_retrieval_apple'
+COLLECTION_HNSW_SIGLIP_NOCAP = "video_retrieval_siglip_nocap"
 
 # --- Cấu hình Tìm kiếm & Rerank MỚI ---
 # Top K kết quả lấy từ Milvus để đưa vào rerank

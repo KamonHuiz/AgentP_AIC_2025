@@ -154,3 +154,67 @@ class RetrievalSystemApple:
             score = hit.score
             formatted_results.append((path, score, caption))
         return formatted_results
+    
+class RetrievalSystemSiglipNoCap:
+    """
+    Retrieval System cho SigLip nhưng KHÔNG có caption.
+    """
+    def __init__(self, model_name: str, pretrained: str, milvus_host: str, milvus_port: str,
+                 collection_name_hnsw: str):
+        print("Initializing SigLip Retrieval System (no caption)...")
+
+        # 1. Load model
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"✅ Using device: {self.device}")
+        self.model, _, _ = open_clip.create_model_and_transforms(
+            model_name, pretrained=pretrained, device=self.device
+        )
+        self.tokenizer = open_clip.get_tokenizer(model_name)
+        self.model.eval()
+        print("✅ SigLip model loaded.")
+
+        # 2. Connect Milvus + load collection
+        try:
+            print(f"Connecting to Milvus at {milvus_host}:{milvus_port}...")
+            connections.connect("default", host=milvus_host, port=milvus_port)
+            print("✅ Connected to Milvus.")
+
+            print(f"Loading HNSW collection: '{collection_name_hnsw}'...")
+            self.collection_hnsw = Collection(collection_name_hnsw)
+            self.collection_hnsw.load()
+
+            print("✅ Collection loaded.")
+        except Exception as e:
+            print(f"❌ Failed to connect/load collection: {e}")
+            raise
+
+    @torch.no_grad()
+    def _encode_text(self, query: str) -> List[float]:
+        """Encode query text thành vector."""
+        tokens = self.tokenizer([query]).to(self.device)
+        text_features = self.model.encode_text(tokens)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+        return text_features[0].cpu().tolist()
+
+    def search(self, query: str, k: int, search_params: dict) -> List[Tuple[str, float]]:
+        """
+        Tìm kiếm KHÔNG có caption.
+        Trả về list (path, score).
+        """
+        query_vector = self._encode_text(query)
+
+        results = self.collection_hnsw.search(
+            data=[query_vector],
+            anns_field="embedding",
+            param=search_params,
+            limit=k,
+            output_fields=["path"]  # ❌ bỏ caption
+        )
+
+        hits = results[0]
+        formatted_results = []
+        for hit in hits:
+            path = hit.entity.get("path")
+            score = hit.score
+            formatted_results.append((path, score))  # ❌ không có caption
+        return formatted_results

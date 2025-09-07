@@ -4,7 +4,8 @@ from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 from rank_bm25 import BM25Okapi
 
-from src import RetrievalSystem, RetrievalSystemApple
+# IMPORT NOTE: thêm class mới vào src và import nó
+from src import RetrievalSystem, RetrievalSystemApple, RetrievalSystemSiglipNoCap
 import config
 
 # --- HELPER FUNCTION ---
@@ -18,7 +19,7 @@ def normalize_scores(scores):
 
 print("--- Starting Application ---")
 
-# --- Khởi tạo 3 retrievers ---
+# --- Khởi tạo retrievers ---
 retrieval_service_openclip = RetrievalSystem(
     model_name=config.MODEL_NAME_OPENCLIP,
     pretrained=config.PRETRAINED_OPENCLIP,
@@ -35,6 +36,15 @@ retrieval_service_siglip = RetrievalSystem(
     collection_name_hnsw=config.COLLECTION_HNSW_SIGLIP
 )
 
+# --- new: SigLip no-caption retriever (class bạn đã viết) ---
+retrieval_service_siglip_nocap = RetrievalSystemSiglipNoCap(
+    model_name=config.MODEL_NAME_SIGLIP,
+    pretrained=config.PRETRAINED_SIGLIP,
+    milvus_host=config.MILVUS_HOST,
+    milvus_port=config.MILVUS_PORT,
+    collection_name_hnsw=config.COLLECTION_HNSW_SIGLIP_NOCAP  # cần có trong config
+)
+
 retrieval_service_apple = RetrievalSystemApple(
     model_name=config.MODEL_NAME_APPLE,
     milvus_host=config.MILVUS_HOST,
@@ -49,11 +59,12 @@ CORS(app)
 
 def get_video_id_from_path(path: str):
     """
-    Trích xuất 'Lxx_Vyyy' ở bất kỳ đâu trong path.
+    Trích xuất 'Lxx_Vyyy' (hoặc Kxx_Vyyy) ở bất kỳ đâu trong path.
     Ví dụ: 'L21/L21_V001/000000.webp' -> 'L21_V001'
     """
     safe = path.replace("\\", "/")
-    m = re.search(r"(L\d+_V\d+)", safe)
+    # Mở rộng để bắt cả Lxx_Vyyy và Kxx_Vyyy
+    m = re.search(r"([LK]\d+_V\d+)", safe)
     return m.group(1) if m else None
 
 @app.route("/search", methods=["GET"])
@@ -74,6 +85,8 @@ def search_endpoint():
             retriever = retrieval_service_openclip
         elif mode == "siglip":
             retriever = retrieval_service_siglip
+        elif mode == "siglip_nocap":
+            retriever = retrieval_service_siglip_nocap
         elif mode == "apple":
             retriever = retrieval_service_apple
         else:
@@ -88,23 +101,42 @@ def search_endpoint():
         if not initial_results:
             return jsonify({"frame_results": [], "video_results": []})
 
-        # --- D. BM25 rerank ---
+        # --- D. Rerank ---
+        # NOTE: initial_results format:
+        #  - for no-cap collection (siglip_nocap): (path, score)
+        #  - for caption collections: (path, score, caption)
         paths = [res[0] for res in initial_results]
         clip_scores = [res[1] for res in initial_results]
-        captions = [res[2] for res in initial_results]
-
-        tokenized_captions = [c.split() for c in captions]
-        bm25 = BM25Okapi(tokenized_captions)
-        tokenized_query = query.split()
-        bm25_scores = bm25.get_scores(tokenized_query)
-
-        norm_clip_scores = normalize_scores(clip_scores)
-        norm_bm25_scores = normalize_scores(bm25_scores)
 
         reranked_results = []
-        for i in range(len(paths)):
-            final_score = config.ALPHA * norm_clip_scores[i] + (1 - config.ALPHA) * norm_bm25_scores[i]
-            reranked_results.append({"path": paths[i], "score": final_score})
+
+        if mode == "siglip_nocap":
+            # Không có caption => bỏ qua BM25, chỉ dùng normalized clip score
+            norm_clip_scores = normalize_scores(clip_scores)
+            for i, p in enumerate(paths):
+                reranked_results.append({"path": p, "score": norm_clip_scores[i]})
+        else:
+            # Có caption => sử dụng BM25 rerank (như cũ)
+            # bảo đảm captions an toàn (nếu có None -> "")
+            captions = []
+            for res in initial_results:
+                if len(res) >= 3 and res[2] is not None:
+                    captions.append(res[2])
+                else:
+                    captions.append("")
+
+            tokenized_captions = [c.split() for c in captions]
+            bm25 = BM25Okapi(tokenized_captions)
+            tokenized_query = query.split()
+            bm25_scores = bm25.get_scores(tokenized_query)
+
+            norm_clip_scores = normalize_scores(clip_scores)
+            norm_bm25_scores = normalize_scores(bm25_scores)
+
+            for i in range(len(paths)):
+                final_score = config.ALPHA * norm_clip_scores[i] + (1 - config.ALPHA) * norm_bm25_scores[i]
+                reranked_results.append({"path": paths[i], "score": final_score})
+
         reranked_results.sort(key=lambda x: x["score"], reverse=True)
 
         # --- E. Chuẩn bị dữ liệu trả về ---
