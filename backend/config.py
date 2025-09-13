@@ -22,10 +22,8 @@ MODEL_NAME_APPLE = 'hf-hub:apple/DFN5B-CLIP-ViT-H-14-384'
 MILVUS_HOST = '127.0.0.1'
 MILVUS_PORT = '19530'
 # Tên 3 collection chúng ta đã tạo
-COLLECTION_HNSW_OPENCLIP = 'video_retrieval_final'
-COLLECTION_HNSW_SIGLIP = 'video_retrieval_siglip'
-COLLECTION_HNSW_APPLE = 'video_retrieval_apple'
-COLLECTION_HNSW_SIGLIP_NOCAP = "video_retrieval_siglip_nocap"
+
+COLLECTION_HNSW_FINAL_FIRST_G = "SIGLIP_COLLECTION" 
 
 # --- Cấu hình Tìm kiếm & Rerank MỚI ---
 # Top K kết quả lấy từ Milvus để đưa vào rerank

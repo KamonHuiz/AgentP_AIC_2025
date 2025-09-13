@@ -5,7 +5,7 @@ from flask_cors import CORS
 from rank_bm25 import BM25Okapi
 
 # IMPORT NOTE: thêm class mới vào src và import nó
-from src import RetrievalSystem, RetrievalSystemApple, RetrievalSystemSiglipNoCap
+from src import RetrievalSystemSiglipNoCap
 import config
 
 # --- HELPER FUNCTION ---
@@ -20,21 +20,21 @@ def normalize_scores(scores):
 print("--- Starting Application ---")
 
 # --- Khởi tạo retrievers ---
-retrieval_service_openclip = RetrievalSystem(
-    model_name=config.MODEL_NAME_OPENCLIP,
-    pretrained=config.PRETRAINED_OPENCLIP,
-    milvus_host=config.MILVUS_HOST,
-    milvus_port=config.MILVUS_PORT,
-    collection_name_hnsw=config.COLLECTION_HNSW_OPENCLIP
-)
+# retrieval_service_openclip = RetrievalSystem(
+#     model_name=config.MODEL_NAME_OPENCLIP,
+#     pretrained=config.PRETRAINED_OPENCLIP,
+#     milvus_host=config.MILVUS_HOST,
+#     milvus_port=config.MILVUS_PORT,
+#     collection_name_hnsw=config.COLLECTION_HNSW_OPENCLIP
+# )
 
-retrieval_service_siglip = RetrievalSystem(
-    model_name=config.MODEL_NAME_SIGLIP,
-    pretrained=config.PRETRAINED_SIGLIP,
-    milvus_host=config.MILVUS_HOST,
-    milvus_port=config.MILVUS_PORT,
-    collection_name_hnsw=config.COLLECTION_HNSW_SIGLIP
-)
+# retrieval_service_siglip = RetrievalSystem(
+#     model_name=config.MODEL_NAME_SIGLIP,
+#     pretrained=config.PRETRAINED_SIGLIP,
+#     milvus_host=config.MILVUS_HOST,
+#     milvus_port=config.MILVUS_PORT,
+#     collection_name_hnsw=config.COLLECTION_HNSW_SIGLIP
+# )
 
 # --- new: SigLip no-caption retriever (class bạn đã viết) ---
 retrieval_service_siglip_nocap = RetrievalSystemSiglipNoCap(
@@ -42,15 +42,15 @@ retrieval_service_siglip_nocap = RetrievalSystemSiglipNoCap(
     pretrained=config.PRETRAINED_SIGLIP,
     milvus_host=config.MILVUS_HOST,
     milvus_port=config.MILVUS_PORT,
-    collection_name_hnsw=config.COLLECTION_HNSW_SIGLIP_NOCAP  # cần có trong config
+    collection_name_hnsw=config.COLLECTION_HNSW_FINAL_FIRST_G  # cần có trong config
 )
 
-retrieval_service_apple = RetrievalSystemApple(
-    model_name=config.MODEL_NAME_APPLE,
-    milvus_host=config.MILVUS_HOST,
-    milvus_port=config.MILVUS_PORT,
-    collection_name_hnsw=config.COLLECTION_HNSW_APPLE
-)
+# retrieval_service_apple = RetrievalSystemApple(
+#     model_name=config.MODEL_NAME_APPLE,
+#     milvus_host=config.MILVUS_HOST,
+#     milvus_port=config.MILVUS_PORT,
+#     collection_name_hnsw=config.COLLECTION_HNSW_APPLE
+# )
 
 print("--- Application Started ---")
 
@@ -80,15 +80,10 @@ def search_endpoint():
         search_params = {"params": {"ef": ef_value}}
 
         # --- B. Chọn retriever theo mode ---
-        mode = request.args.get("mode", "apple")  # default = apple
-        if mode == "openclip":
-            retriever = retrieval_service_openclip
-        elif mode == "siglip":
-            retriever = retrieval_service_siglip
-        elif mode == "siglip_nocap":
+        mode = request.args.get("mode", "SIGLIP_COLLECTION")  # default = apple
+
+        if mode == "SIGLIP_COLLECTION":
             retriever = retrieval_service_siglip_nocap
-        elif mode == "apple":
-            retriever = retrieval_service_apple
         else:
             return jsonify({"error": f"Unknown mode: {mode}"}), 400
 
@@ -110,7 +105,7 @@ def search_endpoint():
 
         reranked_results = []
 
-        if mode == "siglip_nocap":
+        if mode == "SIGLIP_COLLECTION":
             # Không có caption => bỏ qua BM25, chỉ dùng normalized clip score
             norm_clip_scores = normalize_scores(clip_scores)
             for i, p in enumerate(paths):
