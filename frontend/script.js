@@ -6,7 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const colorInput = document.getElementById("color-input");
   const ocrInput = document.getElementById("ocr-input");
   const topkInput = document.getElementById("topk-input");
-  const gallery = document.getElementById("gallery");
+
+  // 2 gallery riêng biệt
+  const galleryFrame = document.getElementById("gallery-frame");
+  const galleryVideo = document.getElementById("gallery-video");
   const viewModeToggle = document.getElementById("view-mode-toggle");
   let videoData = {};
 
@@ -22,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch((err) => console.error("❌ Lỗi load JSON:", err));
 
-  // Bắt sự kiện cho nút mở YouTube
+  // Nút mở YouTube
   document.getElementById("open-youtube-btn").addEventListener("click", () => {
     const videoId = document.getElementById("info-videoid").innerText.trim();
     const frameIndex = parseInt(
@@ -72,7 +75,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    gallery.innerHTML = '<p class="placeholder">Loading...</p>';
+    // placeholder theo gallery hiện tại
+    if (currentViewMode === "frame") {
+      galleryVideo.style.display = "none";
+      galleryFrame.style.display = "grid";
+      galleryFrame.innerHTML = '<p class="placeholder">Loading...</p>';
+    } else {
+      galleryFrame.style.display = "none";
+      galleryVideo.style.display = "grid";
+      galleryVideo.innerHTML = '<p class="placeholder">Loading...</p>';
+    }
 
     let apiUrl = `${HOST}/search?query=${encodeURIComponent(
       query
@@ -105,7 +117,16 @@ document.addEventListener("DOMContentLoaded", () => {
       renderGallery();
     } catch (error) {
       console.error("Fetch error:", error);
-      gallery.innerHTML = '<p class="placeholder">Failed to fetch results.</p>';
+      // hiển thị lỗi theo gallery
+      if (currentViewMode === "frame") {
+        galleryVideo.style.display = "none";
+        galleryFrame.style.display = "grid";
+        galleryFrame.innerHTML = '<p class="placeholder">Failed to fetch results.</p>';
+      } else {
+        galleryFrame.style.display = "none";
+        galleryVideo.style.display = "grid";
+        galleryVideo.innerHTML = '<p class="placeholder">Failed to fetch results.</p>';
+      }
     }
   }
 
@@ -123,12 +144,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Hiển thị theo frame ---
   function displayFrameResults(frameResults) {
-    gallery.innerHTML = "";
+    galleryVideo.style.display = "none";
+    galleryFrame.style.display = "grid";
+    galleryFrame.innerHTML = "";
+
     if (!frameResults || frameResults.length === 0) {
-      gallery.innerHTML = '<p class="placeholder">No results found.</p>';
+      galleryFrame.innerHTML = '<p class="placeholder">No results found.</p>';
       return;
     }
-    gallery.className = "gallery gallery-frame-mode";
 
     frameResults.forEach((item) => {
       const imgElement = document.createElement("img");
@@ -140,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const maybeVideoId = pathToVideoIdMap.get(item.path);
       if (maybeVideoId) imgElement.dataset.videoId = maybeVideoId;
 
-      gallery.appendChild(imgElement);
+      galleryFrame.appendChild(imgElement);
     });
   }
 
@@ -157,12 +180,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Hiển thị theo video ---
   function displayVideoResults(videoResults) {
-    gallery.innerHTML = "";
+    galleryFrame.style.display = "none";
+    galleryVideo.style.display = "grid";
+    galleryVideo.innerHTML = "";
+
     if (!videoResults || videoResults.length === 0) {
-      gallery.innerHTML = '<p class="placeholder">No results found.</p>';
+      galleryVideo.innerHTML = '<p class="placeholder">No results found.</p>';
       return;
     }
-    gallery.className = "gallery gallery-video-mode";
 
     videoResults.forEach((video) => {
       const videoGroup = document.createElement("div");
@@ -170,103 +195,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const title = document.createElement("h3");
       title.className = "video-title";
-      title.textContent = `Video: ${
-        video.video_id
-      } (Score: ${video.video_score.toFixed(3)})`;
+      title.textContent = `Video: ${video.video_id} (Score: ${video.video_score.toFixed(3)})`;
       videoGroup.appendChild(title);
 
-      let groupIndex = 0;
-      const mainImg = document.createElement("img");
-      const bestFrame = video.frames?.length > 0 ? video.frames[0].path : null;
+      const framesContainer = document.createElement("div");
+      framesContainer.className = "video-frames";
 
-      if (
-        bestFrame &&
-        Array.isArray(video.all_frames) &&
-        video.all_frames.length
-      ) {
-        groupIndex = video.all_frames.indexOf(bestFrame);
-        if (groupIndex === -1) groupIndex = 0;
-        mainImg.src = addHost(video.all_frames[groupIndex]);
-      } else if (Array.isArray(video.all_frames) && video.all_frames.length) {
-        mainImg.src = addHost(video.all_frames[groupIndex]);
-      }
-
-      mainImg.className = "main-frame";
-      mainImg.dataset.videoId = video.video_id;
-      mainImg.dataset.pathNormalized = video.all_frames?.[groupIndex] || "";
-
-      videoGroup.appendChild(mainImg);
-
-      // Nút điều hướng
-      const prevBtn = document.createElement("button");
-      prevBtn.textContent = "<";
-      prevBtn.className = "nav-btn left-btn";
-      const nextBtn = document.createElement("button");
-      nextBtn.textContent = ">";
-      nextBtn.className = "nav-btn right-btn";
-
-      function updateMainImg(newIndex) {
-        groupIndex = newIndex;
-        const p = video.all_frames[groupIndex];
-        mainImg.src = addHost(p);
-        mainImg.dataset.pathNormalized = p;
-        renderThumbs();
-      }
-
-      prevBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (video.all_frames?.length > 0) {
-          updateMainImg(
-            (groupIndex - 1 + video.all_frames.length) % video.all_frames.length
-          );
-        }
+      (video.frames || []).forEach((f) => {
+        const img = document.createElement("img");
+        img.src = addHost(f.path);
+        img.alt = f.path;
+        img.loading = "lazy";
+        img.dataset.pathNormalized = f.path;
+        img.dataset.videoId = video.video_id;
+        framesContainer.appendChild(img);
       });
 
-      nextBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (video.all_frames?.length > 0) {
-          updateMainImg((groupIndex + 1) % video.all_frames.length);
-        }
-      });
-
-      videoGroup.appendChild(prevBtn);
-      videoGroup.appendChild(nextBtn);
-
-      // Thumbnails lân cận
-      const thumbsContainer = document.createElement("div");
-      thumbsContainer.className = "neighbor-frames";
-      videoGroup.appendChild(thumbsContainer);
-
-      function renderThumbs() {
-        thumbsContainer.innerHTML = "";
-        const list = video.all_frames || [];
-        const total = list.length;
-        if (!total) return;
-
-        let start = Math.max(0, groupIndex - 2);
-        let end = Math.min(total - 1, groupIndex + 2);
-        if (end - start < 4) {
-          start = Math.max(0, end - 4);
-          end = Math.min(total - 1, start + 4);
-        }
-
-        for (let i = start; i <= end; i++) {
-          const thumb = document.createElement("img");
-          const p = list[i];
-          thumb.src = addHost(p);
-          if (i === groupIndex) thumb.classList.add("active");
-          thumb.dataset.videoId = video.video_id;
-          thumb.dataset.pathNormalized = p;
-          thumb.addEventListener("click", (e) => {
-            e.stopPropagation();
-            updateMainImg(i);
-          });
-          thumbsContainer.appendChild(thumb);
-        }
-      }
-      renderThumbs();
-
-      gallery.appendChild(videoGroup);
+      videoGroup.appendChild(framesContainer);
+      galleryVideo.appendChild(videoGroup);
     });
   }
 
@@ -293,39 +239,39 @@ document.addEventListener("DOMContentLoaded", () => {
   let allImages = [];
   let currentIndex = 0;
 
-  // Click ảnh trong gallery -> mở modal
-  gallery.addEventListener("click", (e) => {
-    if (e.target.tagName !== "IMG") return;
+  // Lắng nghe click cho cả 2 gallery
+  [galleryFrame, galleryVideo].forEach((g) => {
+    g.addEventListener("click", (e) => {
+      if (e.target.tagName !== "IMG") return;
 
-    const clickedRelPath =
-      e.target.dataset.pathNormalized || normalizePathFromSrc(e.target.src);
-    const clickedVideoId =
-      e.target.dataset.videoId || pathToVideoIdMap.get(clickedRelPath);
+      const clickedRelPath =
+        e.target.dataset.pathNormalized || normalizePathFromSrc(e.target.src);
+      const clickedVideoId =
+        e.target.dataset.videoId || pathToVideoIdMap.get(clickedRelPath);
 
-    if (clickedVideoId && videoIdToAllFramesMap.has(clickedVideoId)) {
-      const listRel = videoIdToAllFramesMap.get(clickedVideoId) || [];
-      if (listRel.length > 0) {
-        allImages = listRel.map(addHost);
-        let idx = listRel.indexOf(clickedRelPath);
-        if (idx < 0) {
-          idx = listRel.findIndex(
-            (p) => addHost(p) === e.target.src || e.target.src.endsWith(p)
-          );
+      if (clickedVideoId && videoIdToAllFramesMap.has(clickedVideoId)) {
+        const listRel = videoIdToAllFramesMap.get(clickedVideoId) || [];
+        if (listRel.length > 0) {
+          allImages = listRel.map(addHost);
+          let idx = listRel.indexOf(clickedRelPath);
+          if (idx < 0) {
+            idx = listRel.findIndex(
+              (p) => addHost(p) === e.target.src || e.target.src.endsWith(p)
+            );
+          }
+          currentIndex = Math.max(0, idx);
+        } else {
+          allImages = [e.target.src];
+          currentIndex = 0;
         }
-        currentIndex = Math.max(0, idx);
       } else {
-        allImages = [e.target.src];
-        currentIndex = 0;
+        allImages = Array.from(g.querySelectorAll("img")).map((img) => img.src);
+        currentIndex = allImages.indexOf(e.target.src);
+        if (currentIndex < 0) currentIndex = 0;
       }
-    } else {
-      allImages = Array.from(gallery.querySelectorAll("img")).map(
-        (img) => img.src
-      );
-      currentIndex = allImages.indexOf(e.target.src);
-      if (currentIndex < 0) currentIndex = 0;
-    }
 
-    openModal(currentIndex);
+      openModal(currentIndex);
+    });
   });
 
   function openModal(index = 0) {
@@ -394,6 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.stopPropagation();
     modal.style.display = "none";
   });
-  modal.addEventListener("click", () => (modal.style.display = "none"));
+
   modalPanel.addEventListener("click", (e) => e.stopPropagation());
+  modal.addEventListener("click", () => (modal.style.display = "none"));
 });

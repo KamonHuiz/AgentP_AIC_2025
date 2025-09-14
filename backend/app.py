@@ -56,7 +56,6 @@ print("--- Application Started ---")
 
 app = Flask(__name__)
 CORS(app)
-
 def get_video_id_from_path(path: str):
     """
     Trích xuất 'Lxx_Vyyy' (hoặc Kxx_Vyyy) ở bất kỳ đâu trong path.
