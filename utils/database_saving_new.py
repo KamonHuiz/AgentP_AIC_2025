@@ -15,7 +15,7 @@ _HOST = '127.0.0.1'
 _PORT = '19530'
 
 # Collection name mới cho SigLip không có caption
-_COLLECTION_NAME = 'video_retrieval_siglip_nocap'
+_COLLECTION_NAME = 'SIGLIP_COLLECTION'
 _ID_FIELD = 'id'
 _VECTOR_FIELD = 'embedding'
 _PATH_FIELD = 'path'
@@ -25,9 +25,14 @@ _DIM = 1152
 
 # L-packs để xử lý
 # L-packs để xử lý (K01 -> K20)
-L_PACKS_TO_PROCESS = [f"K{i:02d}" for i in range(1, 21)]
-
-
+L_PACKS_TO_PROCESS = [f"K{i:02d}" for i in range(1, 21)] + [f"L{i}" for i in range(21,31)]
+_INDEX_TYPE = "HNSW"   
+_INDEX_PARAMS = {
+    "HNSW": {"M": 32, "efConstruction": 512},
+    "FLAT": {},  # Flat không cần tham số
+    "IVF_FLAT": {"nlist": 1024},
+    "IVF_SQ8": {"nlist": 1024},
+}
 # Đường dẫn base
 KEYFRAMES_BASE_DIR = "D:/Workplace/AIC_2025/Data/Keyframes"
 
@@ -35,7 +40,7 @@ FEATURES_BASE_DIR = "D:/Workplace/AIC_2025/Data/All_Features/SigLip"
 MAPPING_BASE_DIR  = "D:/Workplace/AIC_2025/Data/All_Features/SigLip"
 
 # Batch insert
-BATCH_SIZE = 1152
+BATCH_SIZE = 5000
 
 # ================= HELPER =================
 
@@ -128,7 +133,7 @@ def main():
     print(f"✅ Flush done. Total entities: {collection.num_entities}")
 
     print("Step 4: Create index...")
-    index_params = {"metric_type": "IP", "index_type": "HNSW", "params": {"M": 32, "efConstruction": 512}}
+    index_params = {"metric_type": "IP", "index_type": f"{_INDEX_TYPE}", "params": _INDEX_PARAMS.get(_INDEX_TYPE, {}) }
     collection.create_index(field_name=_VECTOR_FIELD, index_params=index_params)
     utility.wait_for_index_building_complete(_COLLECTION_NAME)
     print("✅ Index built.")

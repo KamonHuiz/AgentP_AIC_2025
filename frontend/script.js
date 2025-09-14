@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const colors = colorInput.value.trim();
     const ocr = ocrInput.value.trim();
     const modeSelect = document.getElementById("model-select");
-    const mode = modeSelect.value || "apple";
+    const mode = modeSelect.value || "SIGLIP_COLLECTION";
     if (!query) {
       alert("Please enter a search query.");
       return;

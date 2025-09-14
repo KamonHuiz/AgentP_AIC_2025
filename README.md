@@ -46,7 +46,7 @@ python app.py
 
 cd vô frontend
 Terminal 2
-python -m http.server
+python -m http.server 8000
 
 truy cập đường dẫn sau
 http://localhost:8000/index.html
