@@ -20,8 +20,8 @@ Tạo môi trường ảo nha
 pip install -r requirements.txt
 
 # CẤU HÌNH GIT LẦN ĐẦU
-git config --global user.email "kamonwalter72@gmail.com"
-git config --global user.name "KamonHuiz"
+git config --global user.email "yourgmail@gmail.com"
+git config --global user.name "GithubName"
 
 # LUỒNG LÀM VIỆC CHUẨN
 git pull                    # Luôn kéo code mới về
