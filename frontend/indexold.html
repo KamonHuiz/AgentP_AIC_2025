@@ -16,12 +16,17 @@
         <div class="controls-panel">
             <h2>Điều khiển</h2>
     
-            <div class="toggle-grid-container">
-                <button id="view-mode-toggle" class="grid-button">View by Video</button>
-                <button class="grid-button placeholder-button">Tool 2</button>
-                <button class="grid-button placeholder-button">Tool 3</button>
-                <button class="grid-button placeholder-button">Tool 4</button>
-            </div>
+        <div class="toggle-grid-container">
+            <button id="view-mode-toggle" class="grid-button">View by Video</button>
+
+            <!-- Dropdown chọn model -->
+            <select id="model-select" class="grid-button">
+                <option value="SIGLIP_COLLECTION" selected>Super Model</option>
+            </select>
+
+            <button class="grid-button placeholder-button">Tool 3</button>
+            <button class="grid-button placeholder-button">Tool 4</button>
+        </div>
 
             <div class="control-group">
                 <label for="query-input">CLIP Search</label>
@@ -71,6 +76,11 @@
             <div class="modal-info" id="modal-info">
                 <p><strong>Video ID:</strong> <span id="info-videoid">-</span></p>
                 <p><strong>Frame Index:</strong> <span id="info-frame">-</span></p>
+                <!-- 🆕 Nút mở YouTube -->
+                <button id="open-youtube-btn" style="margin-top: 10px; padding: 5px 10px; border-radius: 6px; background: red; color: white; border: none; cursor: pointer;">
+                ▶ Mở YouTube
+            </button>
+
             </div>
 
              <div class="control-group">

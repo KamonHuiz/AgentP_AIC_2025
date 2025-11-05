@@ -4,112 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Retrieval</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="main-container">
+    <div class="main-container">
 
-    <!-- Bảng điều khiển -->
-    <div class="controls-panel">
-        <h2>Điều khiển</h2>
-
+        <div class="controls-panel">
+            <h2>Điều khiển</h2>
+    
         <div class="toggle-grid-container">
             <button id="view-mode-toggle" class="grid-button">View by Video</button>
 
-            <!-- Dropdown chọn model -->
             <select id="model-select" class="grid-button">
                 <option value="SIGLIP_COLLECTION" selected>Super Model</option>
-                <option value="SIGLIP_NOCAP">SigLip NoCap</option>
             </select>
 
             <button class="grid-button placeholder-button">Tool 3</button>
             <button class="grid-button placeholder-button">Tool 4</button>
         </div>
 
-        <div class="control-group">
-            <label for="query-input">CLIP Search</label>
-            <textarea id="query-input" placeholder="Enter your query..."></textarea>
-        </div>     
+            <div class="control-group">
+                <label for="query-input">CLIP Search</label>
+                <textarea id="query-input" placeholder="Enter your query..."></textarea>
+            </div>     
 
-        <div class="control-group">
-            <label for="ocr-input">Filter by OCR</label>
-            <input type="text" id="ocr-input" placeholder="Enter OCR text...">
+            <div class="control-group">
+                <label for="ocr-input">Filter by OCR</label>
+                <input type="text" id="ocr-input" placeholder="Enter OCR text...">
+            </div>
+
+            <div class="control-group">
+                <label for="color-input">Colors Filter</label>
+                <input type="text" id="color-input" placeholder="e.g., red, blue...">
+            </div>
+
+            <div class="control-group">
+                <label for="topk-input">Top K</label>
+                <input type="number" id="topk-input" value="500">
+            </div>
+
+            <button id="search-button">Search</button>
         </div>
 
-        <div class="control-group">
-            <label for="color-input">Colors Filter</label>
-            <input type="text" id="color-input" placeholder="e.g., red, blue...">
+        <div class="gallery-panel">
+            <div id="gallery" class="gallery">
+                <p class="placeholder">Results will be displayed here.</p>
+            </div>
         </div>
 
-        <div class="control-group">
-            <label for="topk-input">Top K</label>
-            <input type="number" id="topk-input" value="500">
-        </div>
-
-        <button id="search-button">Search</button>
     </div>
-
-    <!-- Khu vực Gallery -->
-    <div class="gallery-panel">
-        <!-- Gallery Frame Mode -->
-        <div id="gallery-frame" class="gallery gallery-frame-mode">
-            <p class="placeholder">Results will be displayed here.</p>
-        </div>
-
-        <!-- Gallery Video Mode -->
-        <div id="gallery-video" class="gallery gallery-video-mode" style="display: none;">
-            <!-- Khi view by video sẽ có thêm tiêu đề video -->
-            <h3 class="video-title">Tên Video: <span id="video-title-name">Chưa chọn</span></h3>
-            <!-- Các frame của video sẽ xuất hiện trực tiếp ở đây -->
-        </div>
-    </div>
-</div>
-
-<!-- Modal hiển thị ảnh -->
-<div id="image-modal" class="modal">
+    
+    <div id="image-modal" class="modal">
     <button class="modal-close" aria-label="Close">&times;</button>
 
     <div class="modal-panel">
         <div class="modal-left">
-            <!-- Ảnh chính -->
             <div class="modal-main">
-    <img class="modal-content" id="modal-img">
-</div>
+                <button id="prev-btn" class="nav-btn">&#10094;</button>
+                <img class="modal-content" id="modal-img">
+                <button id="next-btn" class="nav-btn">&#10095;</button>
+            </div>
 
-<!-- Nút điều hướng đặt dưới ảnh -->
-<div class="nav-controls">
-    <button id="prev-btn" class="nav-btn">&#10094; Prev</button>
-    <button id="next-btn" class="nav-btn">Next &#10095;</button>
-</div>
-
-
-            <!-- Thông tin ảnh -->
             <div class="modal-info" id="modal-info">
                 <p><strong>Video ID:</strong> <span id="info-videoid">-</span></p>
                 <p><strong>Frame Index:</strong> <span id="info-frame">-</span></p>
-                <button id="open-youtube-btn" style="margin-top: 8px; padding: 5px 10px; border-radius: 6px; background: red; color: white; border: none; cursor: pointer;">
-                    ▶ Mở YouTube
-                </button>
+                <button id="open-youtube-btn" style="margin-top: 10px; padding: 5px 10px; border-radius: 6px; background: red; color: white; border: none; cursor: pointer;">
+                ▶ Mở YouTube
+            </button>
             </div>
 
-            <!-- Q&A -->
-            <div class="control-group">
-                <label for="Q&A-input">Q&A</label>
-                <input type="text" id="Q&A-input" placeholder="Anything...">
-            </div>
+             <div class="control-group">
+                 <label for="Q&A-input">Q&A</label>
+                 <input type="text" id="Q&A-input" placeholder="Anything...">
+             </div>
         </div>
 
-        <!-- Thumbnails bên phải -->
+
         <div class="panel-right">
-            <div id="modal-thumbs" class="thumbs"></div>
+        <div id="modal-thumbs" class="thumbs"></div>
         </div>
     </div>
-</div>
+    </div>
 
-<script src="script.js"></script>
+    <div id="youtube-modal" class="modal">
+        <div class="modal-panel" style="width: 900px; height: auto;">
+            <button class="modal-close youtube-modal-close" aria-label="Close">&times;</button>
+
+            <div style="width: 100%; aspect-ratio: 16 / 9; background: #000;">
+                <div id="youtube-iframe"></div>
+            </div>
+
+            <div class="modal-info" id="youtube-modal-info" style="margin-top: 10px;">
+                <span id="yt-frame-fps" style="margin-right: 15px;">FPS: -</span>
+                <span id="yt-frame-time" style="margin-right: 15px;">Time: -</span>
+                <span id="yt-frame-number" style="margin-right: 15px;">Frame: -</span>
+                <button id="yt-copy-btn" style="padding: 5px 10px; border-radius: 6px; background: #00ff00; color: black; border: none; cursor: pointer;">
+                    📋 Copy Frame
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
