@@ -20,8 +20,8 @@ Tạo môi trường ảo nha
 pip install -r requirements.txt
 
 # CẤU HÌNH GIT LẦN ĐẦU
-git config --global user.email "kamonwalter72@gmail.com"
-git config --global user.name "KamonHuiz"
+git config --global user.email "yourgmail@gmail.com"
+git config --global user.name "GithubName"
 
 # LUỒNG LÀM VIỆC CHUẨN
 git pull                    # Luôn kéo code mới về
@@ -32,6 +32,14 @@ git push                    # Đẩy code lên
 # KHÁC
 git restore .               # Hủy mọi thay đổi local (nếu cần)
 ```
+# Cách để set up container milvus trên docker
+https://github.com/milvus-io/milvus/releases/download/v2.6.4/milvus-standalone-docker-compose.yml
+tải về máy vào thư mục D:\Workplace\AIC_2025\Database
+- Chạy lệnh sau để kích hoạt container
+docker-compose -f milvus-standalone-docker-compose.yml up -d
+- Chạy lệnh sau để kiểm tra container hoạt động 
+docker ps
+
 
 ## Tải data
 

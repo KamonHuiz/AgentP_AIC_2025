@@ -215,6 +215,8 @@ class RetrievalSystemSiglipNoCap:
         formatted_results = []
         for hit in hits:
             path = hit.entity.get("path")
+            #base_path = "D:/Workplace/AIC_2025/Data/Keyframes"
+            #path = path.replace("D:/Workplace/AIC_2025/Data/Keyframes/", "")
             score = hit.score
-            formatted_results.append((path, score))  # ❌ không có caption
+            formatted_results.append((path, score))
         return formatted_results

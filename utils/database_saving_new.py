@@ -34,7 +34,7 @@ _INDEX_PARAMS = {
     "IVF_SQ8": {"nlist": 1024},
 }
 # Đường dẫn base
-KEYFRAMES_BASE_DIR = "D:/Workplace/AIC_2025/Data/Keyframes"
+KEYFRAMES_BASE_DIR = "E:/Workplace/AIC_2025/Data/Keyframes"
 
 FEATURES_BASE_DIR = "D:/Workplace/AIC_2025/Data/All_Features/SigLip"
 MAPPING_BASE_DIR  = "D:/Workplace/AIC_2025/Data/All_Features/SigLip"
@@ -76,7 +76,13 @@ def main():
 
         # Duyệt từng entry trong mapping
         for abs_path, local_id in mapping.items():
-            rel_path = os.path.relpath(abs_path, KEYFRAMES_BASE_DIR).replace("\\", "/")
+            # Kiểm tra nếu các đường dẫn không cùng ổ đĩa
+            if os.path.splitdrive(abs_path)[0] != os.path.splitdrive(KEYFRAMES_BASE_DIR)[0]:
+                # Nếu không cùng ổ đĩa, giữ nguyên đường dẫn tuyệt đối
+                rel_path = abs_path
+            else:
+                # Nếu cùng ổ đĩa, tính toán đường dẫn tương đối
+                rel_path = os.path.relpath(abs_path, KEYFRAMES_BASE_DIR).replace("\\", "/")
 
             all_clean_data.append({
                 "id": global_id_counter,

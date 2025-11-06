@@ -10,7 +10,11 @@ COLLECTION_HNSW_SIGLIP = 'video_retrieval_siglip'
 COLLECTION_HNSW_APPLE = 'video_retrieval_apple'
 COLLECTION_HNSW_SIGLIP_NOCAP = "video_retrieval_siglip_nocap"
 # Danh sách các collection cần xóa
+<<<<<<< HEAD
 COLLECTIONS_TO_DELETE = ['video_retrieval_v3_hnsw', 'video_retrieval_final', 'video_retrieval_apple', 'video_retrieval_siglip']
+=======
+COLLECTIONS_TO_DELETE = ['SIGLIP_COLLECTION']
+>>>>>>> 4e9ef3a0ae9c8d5c892a74f753a484f9b9056b0f
 
 # --- SCRIPT ---
 def cleanup():

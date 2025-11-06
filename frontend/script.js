@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch((err) => console.error("❌ Lỗi load JSON:", err));
 
-  // Bắt sự kiện cho nút mở YouTube
+  // Bắt sự kiện cho nút mở YouTube (ĐÃ SỬA ĐỂ GIỐNG CODE 1)
   document.getElementById("open-youtube-btn").addEventListener("click", () => {
     const videoId = document.getElementById("info-videoid").innerText.trim();
     const frameIndex = parseInt(
@@ -30,11 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     if (videoData && videoData[videoId]) {
-      const url = videoData[videoId].watch_url;
-      const fps = videoData[videoId].fps;
-      const seconds = Math.floor(frameIndex / fps);
-      const youtubeUrl = `${url}&t=${seconds}s`;
-      window.open(youtubeUrl, "_blank");
+      // Gọi hàm mở modal tùy chỉnh, thay vì mở tab mới
+      openYouTubeModal(videoId, frameIndex);
     } else {
       alert(`Không tìm thấy video [${videoId}] trong JSON!`);
     }
@@ -66,7 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const colors = colorInput.value.trim();
     const ocr = ocrInput.value.trim();
     const modeSelect = document.getElementById("model-select");
-    const mode = modeSelect.value || "SIGLIP_COLLECTION";
+    // VẪN GIỮ NGUYÊN LOGIC CỦA CODE 2
+    const mode = modeSelect.value || "SIGLIP_COLLECTION"; 
     if (!query) {
       alert("Please enter a search query.");
       return;
@@ -396,4 +394,241 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   modal.addEventListener("click", () => (modal.style.display = "none"));
   modalPanel.addEventListener("click", (e) => e.stopPropagation());
+
+  // === PHẦN ĐƯỢC THÊM VÀO TỪ CODE 1 ===
+  const youtubeModal = document.getElementById("youtube-modal");
+  const youtubeIframe = document.getElementById("youtube-iframe");
+  const youtubeModalClose = document.querySelector(".youtube-modal-close");
+  const ytFrameNumber = document.getElementById("yt-frame-number");
+  const ytFrameTime = document.getElementById("yt-frame-time");
+  const ytFrameFps = document.getElementById("yt-frame-fps");
+  const ytCopyBtn = document.getElementById("yt-copy-btn");
+
+  let ytPlayer = null;
+  let ytUpdateInterval = null;
+  let currentVideoFps = 30;
+  let currentVideoId = null;
+  let isYTAPIReady = false;
+
+  // Load YouTube IFrame API
+  function loadYouTubeAPI() {
+    if (window.YT && window.YT.Player) {
+      isYTAPIReady = true;
+      return;
+    }
+
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  }
+
+  // YouTube API ready callback
+  window.onYouTubeIframeAPIReady = function () {
+    isYTAPIReady = true;
+    console.log("YouTube API Ready!");
+  };
+
+  // Load API on page load
+  loadYouTubeAPI();
+
+  function openYouTubeModal(videoId, frameIndex) {
+    if (!videoData[videoId]) return;
+
+    const videoInfo = videoData[videoId];
+    currentVideoFps = videoInfo.fps || 30;
+    currentVideoId = videoId;
+
+    // Extract YouTube video ID from URL
+    const url = videoInfo.watch_url;
+    const youtubeId = extractYouTubeId(url);
+    if (!youtubeId) {
+      alert("Invalid YouTube URL!");
+      return;
+    }
+
+    // Calculate start time
+    const startSeconds = Math.floor(frameIndex / currentVideoFps);
+
+    // Update FPS display
+    ytFrameFps.textContent = `FPS: ${currentVideoFps}`;
+    ytFrameNumber.textContent = "Frame: Loading...";
+    ytFrameTime.textContent = "Time: Loading...";
+
+    // Show modal
+    youtubeModal.style.display = "flex";
+
+    // Initialize YouTube player
+    if (isYTAPIReady && window.YT && window.YT.Player) {
+      initYouTubePlayer(youtubeId, startSeconds);
+    } else {
+      // Fallback: use simple iframe
+      const embedUrl = `https://www.youtube.com/embed/${youtubeId}?start=${startSeconds}&rel=0`;
+      youtubeIframe.src = embedUrl;
+      ytFrameNumber.textContent = "Frame: API not ready";
+      ytFrameTime.textContent = "Time: Use video controls";
+    }
+  }
+
+  function initYouTubePlayer(youtubeId, startSeconds) {
+    // Destroy existing player if any
+    if (ytPlayer) {
+      ytPlayer.destroy();
+    }
+
+    ytPlayer = new YT.Player("youtube-iframe", {
+      height: "100%",
+      width: "100%",
+      videoId: youtubeId,
+      playerVars: {
+        start: startSeconds,
+        autoplay: 1,
+        controls: 1,
+        rel: 0,
+        modestbranding: 1,
+      },
+      events: {
+        onReady: onPlayerReady,
+        onStateChange: onPlayerStateChange,
+      },
+    });
+  }
+
+  function onPlayerReady(event) {
+    console.log("YouTube Player Ready!");
+    startFrameTracking();
+  }
+
+  function onPlayerStateChange(event) {
+    // Player state: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
+    if (event.data === YT.PlayerState.PLAYING) {
+      startFrameTracking();
+    } else if (
+      event.data === YT.PlayerState.PAUSED ||
+      event.data === YT.PlayerState.ENDED
+    ) {
+      updateFrameDisplay();
+    }
+  }
+
+  function extractYouTubeId(url) {
+    const regExp =
+      /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[7].length === 11 ? match[7] : null;
+  }
+
+  function startFrameTracking() {
+    // Clear existing interval
+    if (ytUpdateInterval) {
+      clearInterval(ytUpdateInterval);
+    }
+
+    // Update frame display every 100ms for smooth updates
+    ytUpdateInterval = setInterval(() => {
+      updateFrameDisplay();
+    }, 100);
+  }
+
+  function updateFrameDisplay() {
+    if (!ytPlayer || !ytPlayer.getCurrentTime) {
+      return;
+    }
+
+    try {
+      const currentTime = ytPlayer.getCurrentTime();
+      if (currentTime === undefined || currentTime === null) return;
+
+      // Calculate frame number
+      const frameNumber = Math.floor(currentTime * currentVideoFps);
+
+      // Format time
+      const hours = Math.floor(currentTime / 3600);
+      const minutes = Math.floor((currentTime % 3600) / 60);
+      const seconds = Math.floor(currentTime % 60);
+      const milliseconds = Math.floor((currentTime % 1) * 1000);
+
+      // Update display
+      ytFrameNumber.textContent = `Frame: ${frameNumber}`;
+      ytFrameTime.textContent = `Time: ${String(hours).padStart(
+        2,
+        "0"
+      )}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+        2,
+        "0"
+      )}.${String(milliseconds).padStart(3, "0")}`;
+    } catch (error) {
+      console.error("Error updating frame:", error);
+    }
+  }
+
+  // Copy button handler
+  ytCopyBtn.addEventListener("click", () => {
+    const frameText = ytFrameNumber.textContent.replace("Frame: ", "").trim();
+
+    if (frameText && !isNaN(frameText)) {
+      navigator.clipboard
+        .writeText(frameText)
+        .then(() => {
+          const originalText = ytCopyBtn.textContent;
+          ytCopyBtn.textContent = "✅ Copied!";
+          ytCopyBtn.style.background = "#ffcc00";
+          setTimeout(() => {
+            ytCopyBtn.textContent = originalText;
+            ytCopyBtn.style.background = "#00ff00";
+          }, 1000);
+        })
+        .catch(() => {
+          ytCopyBtn.textContent = "❌ Failed";
+          setTimeout(() => {
+            ytCopyBtn.textContent = "📋 Copy Frame";
+          }, 1000);
+        });
+    } else {
+      alert("Frame number not available yet!");
+    }
+  });
+
+  // Close modal handlers
+  youtubeModalClose.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeYouTubeModal();
+  });
+
+  youtubeModal.addEventListener("click", (e) => {
+    if (e.target === youtubeModal) {
+      closeYouTubeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (youtubeModal.style.display === "flex" && e.key === "Escape") {
+      closeYouTubeModal();
+    }
+  });
+
+  function closeYouTubeModal() {
+    youtubeModal.style.display = "none";
+
+    // Stop player
+    if (ytPlayer && ytPlayer.stopVideo) {
+      ytPlayer.stopVideo();
+    }
+
+    // Clear interval
+    if (ytUpdateInterval) {
+      clearInterval(ytUpdateInterval);
+      ytUpdateInterval = null;
+    }
+
+    // Destroy player
+    if (ytPlayer && ytPlayer.destroy) {
+      ytPlayer.destroy();
+      ytPlayer = null;
+    }
+
+    // Reset iframe
+    youtubeIframe.src = "";
+  }
+  // === HẾT PHẦN THÊM VÀO ===
 });

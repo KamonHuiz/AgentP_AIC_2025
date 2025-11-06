@@ -19,7 +19,6 @@
         <div class="toggle-grid-container">
             <button id="view-mode-toggle" class="grid-button">View by Video</button>
 
-            <!-- Dropdown chọn model -->
             <select id="model-select" class="grid-button">
                 <option value="SIGLIP_COLLECTION" selected>Super Model</option>
             </select>
@@ -31,7 +30,7 @@
             <div class="control-group">
                 <label for="query-input">CLIP Search</label>
                 <textarea id="query-input" placeholder="Enter your query..."></textarea>
-            </div>     
+            </div>     
 
             <div class="control-group">
                 <label for="ocr-input">Filter by OCR</label>
@@ -58,13 +57,11 @@
         </div>
 
     </div>
-        <!-- Modal -->
+    
     <div id="image-modal" class="modal">
     <button class="modal-close" aria-label="Close">&times;</button>
 
-    <!-- Bảng trắng chứa ảnh -->
     <div class="modal-panel">
-        <!-- Bên trái 30% -->
         <div class="modal-left">
             <div class="modal-main">
                 <button id="prev-btn" class="nav-btn">&#10094;</button>
@@ -72,30 +69,45 @@
                 <button id="next-btn" class="nav-btn">&#10095;</button>
             </div>
 
-            <!-- 🆕 Bảng thông tin dưới ảnh -->
             <div class="modal-info" id="modal-info">
                 <p><strong>Video ID:</strong> <span id="info-videoid">-</span></p>
                 <p><strong>Frame Index:</strong> <span id="info-frame">-</span></p>
-                <!-- 🆕 Nút mở YouTube -->
                 <button id="open-youtube-btn" style="margin-top: 10px; padding: 5px 10px; border-radius: 6px; background: red; color: white; border: none; cursor: pointer;">
                 ▶ Mở YouTube
             </button>
-
             </div>
 
              <div class="control-group">
-                    <label for="Q&A-input">Q&A</label>
-                    <input type="text" id="Q&A-input" placeholder="Anything...">
-            </div>
+                 <label for="Q&A-input">Q&A</label>
+                 <input type="text" id="Q&A-input" placeholder="Anything...">
+             </div>
         </div>
 
 
-        <!-- Bên phải 70% -->
         <div class="panel-right">
         <div id="modal-thumbs" class="thumbs"></div>
         </div>
     </div>
-    
+    </div>
+
+    <div id="youtube-modal" class="modal">
+        <div class="modal-panel" style="width: 900px; height: auto;">
+            <button class="modal-close youtube-modal-close" aria-label="Close">&times;</button>
+
+            <div style="width: 100%; aspect-ratio: 16 / 9; background: #000;">
+                <div id="youtube-iframe"></div>
+            </div>
+
+            <div class="modal-info" id="youtube-modal-info" style="margin-top: 10px;">
+                <span id="yt-frame-fps" style="margin-right: 15px;">FPS: -</span>
+                <span id="yt-frame-time" style="margin-right: 15px;">Time: -</span>
+                <span id="yt-frame-number" style="margin-right: 15px;">Frame: -</span>
+                <button id="yt-copy-btn" style="padding: 5px 10px; border-radius: 6px; background: #00ff00; color: black; border: none; cursor: pointer;">
+                    📋 Copy Frame
+                </button>
+            </div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

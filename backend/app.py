@@ -56,7 +56,6 @@ print("--- Application Started ---")
 
 app = Flask(__name__)
 CORS(app)
-
 def get_video_id_from_path(path: str):
     """
     Trích xuất 'Lxx_Vyyy' (hoặc Kxx_Vyyy) ở bất kỳ đâu trong path.
@@ -100,7 +99,7 @@ def search_endpoint():
         # NOTE: initial_results format:
         #  - for no-cap collection (siglip_nocap): (path, score)
         #  - for caption collections: (path, score, caption)
-        paths = [res[0] for res in initial_results]
+        paths = [res[0] for res in initial_results] 
         clip_scores = [res[1] for res in initial_results]
 
         reranked_results = []
@@ -137,7 +136,7 @@ def search_endpoint():
         # --- E. Chuẩn bị dữ liệu trả về ---
         path_to_score_map = {item["path"]: item["score"] for item in reranked_results}
         final_paths = [item["path"] for item in reranked_results]
-
+        
         # 1) frame_results
         frame_results = []
         for path in final_paths:
