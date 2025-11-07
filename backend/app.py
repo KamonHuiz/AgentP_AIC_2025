@@ -122,7 +122,6 @@ def search_endpoint():
             # --- E. Chuẩn bị dữ liệu trả về ---
             path_to_score_map = {item["path"]: item["score"] for item in reranked_results}
             final_paths = [item["path"] for item in reranked_results]
-            print("ĐÂY LÀ FINAL PATHS PHÍA TRÊN ---- NÊN trước khi qua cái loop",final_paths)
             # 1) frame_results
             frame_results = []
             for path in final_paths:
@@ -186,8 +185,8 @@ def search_endpoint():
         elif ocr!="a":
             ocr_results = ocr_retriever.search(ocr, top_k=k_value, use_fuzzy=True)
             initial_results = ocr_retriever.display_results(ocr_results, k_value)
-            initial_results = [path.replace("D:\\Workplace\\AIC_2025\\Data\\Keyframes\\","") for path in initial_results]
-            final_paths = [path.replace("\\","/") for path in initial_results]
+            final_paths = [path.replace("\\", "/").split("Keyframes/", 1)[-1].rsplit(".", 1)[0] + ".webp"
+ for path in initial_results]
             # 1) frame_results
             frame_results = []
             for path in final_paths:
@@ -239,8 +238,8 @@ def search_endpoint():
                 })
 
             video_results_list.sort(key=lambda x: x["best_rank"])
-            print(frame_results,"Frame_RESULT_FINAL")
-            print(video_results_list,"video_results_list_FINAL")
+            print(frame_results[:2],"Frame_RESULT_FINAL")
+            
 
             
             return jsonify({
@@ -251,10 +250,10 @@ def search_endpoint():
             results = audio_retriever.search_with_frames(audio, k=k_value, use_fuzzy=True)
         
         # Get paths
-            paths = audio_retriever.get_keyframe_paths(results, mode="keyword", top_k=k_value)
+            initial_results = audio_retriever.get_keyframe_paths(results, mode="keyword", top_k=k_value)
             
-            initial_results = [path.replace("D:\\Workplace\\AIC_2025\\Data\\Keyframes\\","") for path in paths]
-            final_paths = [path.replace("\\","/") for path in initial_results]
+            final_paths = [path.replace("\\", "/").split("Keyframes/", 1)[-1].rsplit(".", 1)[0] + ".webp"
+ for path in initial_results]
             # 1) frame_results
             frame_results = []
             for path in final_paths:
@@ -340,7 +339,7 @@ def serve_image(filename):
 def submit_answer():
     # Nhận dữ liệu từ yêu cầu POST
     data = request.get_json()
-    print(data)
+    
     # Lấy session_id, evaluation_id và body (answer_data)
     session_id = data.get("session_id")
     evaluation_id = data.get("evaluation_id")
