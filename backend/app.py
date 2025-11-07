@@ -93,7 +93,7 @@ def search_endpoint():
             return jsonify({"error": "Thiếu tham số 'query'."}), 400
 
         k_value = int(request.args.get("k", 500))
-        ef_value = k_value + 400
+        ef_value = k_value*3
         search_params = {"params": {"ef": ef_value}}
 
         # --- B. Chọn retriever theo mode ---
