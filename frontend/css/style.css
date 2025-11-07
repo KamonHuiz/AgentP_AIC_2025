@@ -1,14 +1,14 @@
-/* css/style.css */
+/* css/style.css - OPTIMIZED VERSION */
 
 /* Sử dụng :root để định nghĩa các biến CSS */
 :root {
-  --primary-color: #1a73e8; /* Màu chính (xanh dương) */
-  --primary-color-hover: #155ab6; /* Màu chính khi di chuột qua */
-  --background-color: #f4f7f9; /* Màu nền của trang */
-  --surface-color: #ffffff; /* Màu nền của các panel, card */
-  --text-color: #333; /* Màu chữ chính */
-  --border-color: #e0e0e0; /* Màu của đường viền */
-  --font-family: 'Roboto', sans-serif; /* Font chữ chính */
+  --primary-color: #1a73e8;
+  --primary-color-hover: #155ab6;
+  --background-color: #f4f7f9;
+  --surface-color: #ffffff;
+  --text-color: #333;
+  --border-color: #e0e0e0;
+  --font-family: 'Roboto', sans-serif;
 }
 
 /* Toàn trang */
@@ -34,6 +34,7 @@ body {
   background-color: var(--surface-color);
   border-right: 1px solid var(--border-color);
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  overflow-y: auto; /* ✅ THÊM: scroll nếu nội dung dài */
 }
 
 .controls-panel h2 {
@@ -46,7 +47,7 @@ body {
 /* 4 nút chia làm 2 hàng, 2 cột */
 .toggle-grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 cột */
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 20px;
 }
@@ -102,7 +103,7 @@ body {
   border-radius: 5px;
   font-size: 16px;
   box-sizing: border-box;
-  resize: vertical; /* Cho phép kéo giãn dọc */
+  resize: vertical;
   line-height: 1.4;
   overflow-y: auto;
   word-wrap: break-word;
@@ -146,7 +147,7 @@ body {
   background-color: var(--surface-color);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
-  cursor: pointer; /* Thêm con trỏ cho ảnh trong gallery */
+  cursor: pointer;
 }
 .gallery img:hover {
   transform: scale(1.05);
@@ -159,7 +160,7 @@ body {
   font-size: 18px;
 }
 
-/* === Chế độ xem theo video === */
+/* === Chế độ xem theo video (ĐÃ CẢI THIỆN) === */
 .gallery-video-mode {
   display: flex;
   flex-direction: column;
@@ -171,10 +172,10 @@ body {
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.07);
-  position: relative; /* Quan trọng để định vị nút điều hướng */
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Căn giữa ảnh chính */
+  align-items: center;
 }
 
 .video-title {
@@ -186,25 +187,34 @@ body {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
   box-sizing: border-box;
+  word-wrap: break-word; /* ✅ THÊM: Cho phép xuống dòng */
+  line-height: 1.5; /* ✅ THÊM: Dễ đọc hơn */
 }
 
 /* Ảnh chính trong chế độ video */
 .main-frame {
-  width: min(80%, 480px); /* Kích thước ảnh chính */
+  width: min(80%, 480px);
   height: auto;
   object-fit: contain;
   border-radius: 8px;
   margin-bottom: 10px;
   cursor: pointer;
+  transition: transform 0.2s; /* ✅ THÊM */
+}
+
+.main-frame:hover {
+  transform: scale(1.02); /* ✅ THÊM */
 }
 
 /* Thumbnails lân cận trong chế độ video */
 .neighbor-frames {
   display: flex;
-  justify-content: center;
+  justify-content: center; /* ✅ THÊM: Căn giữa */
   gap: 8px;
   width: 100%;
   margin-top: 10px;
+  flex-wrap: wrap; /* ✅ THÊM: Xuống dòng nếu cần */
+  padding: 5px 0; /* ✅ THÊM */
 }
 
 .neighbor-frames img {
@@ -214,16 +224,24 @@ body {
   border-radius: 4px;
   border: 2px solid transparent;
   cursor: pointer;
+  flex-shrink: 0; /* ✅ THÊM: Không co lại */
+  transition: all 0.2s; /* ✅ THÊM */
+}
+
+.neighbor-frames img:hover {
+  border-color: #aaa; /* ✅ THÊM */
+  transform: scale(1.1); /* ✅ THÊM */
 }
 
 .neighbor-frames img.active {
   border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(26, 115, 232, 0.5); /* ✅ THÊM: Shadow cho active */
 }
 
 /* Nút điều hướng video (Prev/Next) */
 .video-group .nav-btn {
   position: absolute;
-  top: 50%; /* Canh giữa theo chiều dọc */
+  top: 50%;
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.6);
   color: white;
@@ -248,7 +266,6 @@ body {
   right: 20px;
 }
 
-
 /* === Overlay modal (Modal Xem Ảnh Lớn) === */
 .modal {
   display: none;
@@ -256,8 +273,7 @@ body {
   z-index: 1000;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.8);
-
-  display: flex; /* để panel nằm giữa */
+  display: flex;
   justify-content: center;
   align-items: center;
 }
@@ -272,6 +288,9 @@ body {
   font-weight: bold;
   cursor: pointer;
   z-index: 1100;
+  background: none;
+  border: none;
+  transition: color 0.2s; /* ✅ THÊM */
 }
 .modal-close:hover {
   color: #f00;
@@ -282,34 +301,30 @@ body {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-
   display: flex;
   gap: 12px;
   padding: 12px;
-
-  /* Giữ nguyên kích thước modal ban đầu */
   width: min(1200px, 90vw);
   height: min(700px, 90vh);
-
   position: relative;
 }
 
 .modal-content {
-    position: absolute; /* Để phần tử modal-content có thể di chuyển tự do trong modal-panel */
-    top: 0px; /* Đặt nó sát với viền trên của modal-panel */
-    left: 0px; /* Đặt nó sát với viền trái của modal-panel */
-    object-fit: cover; /* Đảm bảo ảnh/video không bị méo khi thay đổi kích thước */
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    object-fit: cover;
 }
 
-/* Cấu trúc mới cho modal xem ảnh (modal-left/modal-right) */
-.modal-left { /* Đổi tên từ .panel-left */
+/* Cấu trúc mới cho modal xem ảnh */
+.modal-left {
   flex: 0 0 25%;
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.modal-main { /* Giữ nguyên các quy tắc cho khung ảnh chính */
+.modal-main {
   flex: 1;
   display: flex;
   align-items: center;
@@ -317,7 +332,7 @@ body {
   background: #fafafa;
   border-radius: 8px;
   overflow: hidden;
-  position: relative; /* Quan trọng cho nav-btn */
+  position: relative;
 }
 
 /* Định vị lại các nút điều hướng bên trong modal-main */
@@ -334,9 +349,13 @@ body {
   border-radius: 6px;
   transition: background-color 0.3s;
 }
+
+.modal-left .nav-btn:hover {
+  background: rgba(0, 0, 0, 0.9); /* ✅ THÊM */
+}
+
 .modal-left #prev-btn { left: 10px; }
 .modal-left #next-btn { right: 10px; }
-
 
 #modal-img {
   max-width: 100%;
@@ -396,29 +415,26 @@ body {
   color: #333;
 }
 
-
-/* === CÁC QUY TẮC MỚI CHO YOUTUBE MODAL === */
-/* Kích thước modal cho YouTube */
+/* === CÁC QUY TẮC CHO YOUTUBE MODAL === */
 #youtube-modal .modal-panel {
-  width: min(900px, 95vw); /* Rộng hơn để chứa video */
-  height: auto; /* Chiều cao tự động */
-  flex-direction: column; /* Xếp dọc các thành phần */
-  padding: 0; /* Loại bỏ padding để video tràn ra */
+  width: min(900px, 95vw);
+  height: auto;
+  flex-direction: column;
+  padding: 0;
   max-height: 90vh;
 }
 
-/* Thẻ đóng YouTube Modal */
 .youtube-modal-close {
-  color: #fff; /* Đảm bảo nó nhìn thấy được trên nền đen của video */
+  color: #fff;
   right: 15px;
   top: 15px;
-  z-index: 1001; /* Đảm bảo nó nằm trên iframe */
+  z-index: 1001;
 }
 
-/* Container chứa iframe (cần để kiểm soát tỷ lệ 16:9) */
+/* Container chứa iframe */
 #youtube-modal > .modal-panel > div:first-child {
   width: 100%;
-  aspect-ratio: 16 / 9; /* Giữ tỷ lệ 16:9 cho video */
+  aspect-ratio: 16 / 9;
   background: #000;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
@@ -448,13 +464,15 @@ body {
   justify-content: space-between;
   align-items: center;
   background: #f0f0f0;
+  flex-wrap: wrap; /* ✅ THÊM: Xuống dòng trên màn nhỏ */
+  gap: 10px; /* ✅ THÊM */
 }
 
 /* Nút Copy Frame */
 #yt-copy-btn {
   padding: 8px 15px;
   border-radius: 6px;
-  background: #00ff00; /* Màu mặc định đã đặt trong JS */
+  background: #00ff00;
   color: black;
   border: none;
   cursor: pointer;
@@ -462,4 +480,32 @@ body {
   transition: background-color 0.3s;
 }
 
-/* END CÁC QUY TẮC MỚI */
+#yt-copy-btn:hover {
+  background: #00dd00; /* ✅ THÊM */
+}
+
+/* ✅ THÊM: Responsive cho màn hình nhỏ */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+  }
+  
+  .controls-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .gallery {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .video-group .left-btn {
+    left: 5px;
+  }
+  
+  .video-group .right-btn {
+    right: 5px;
+  }
+}

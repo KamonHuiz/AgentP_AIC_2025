@@ -273,7 +273,7 @@ async function submit(session_id, evaluation_id, body) {
 
 
 
-  // --- Hiển thị theo video ---
+  // --- Hiển thị theo video (ĐÃ SỬA) ---
   function displayVideoResults(videoResults) {
     gallery.innerHTML = "";
     if (!videoResults || videoResults.length === 0) {
@@ -286,36 +286,26 @@ async function submit(session_id, evaluation_id, body) {
       const videoGroup = document.createElement("div");
       videoGroup.className = "video-group";
 
+      // CHỈ lấy các frame có trong kết quả tìm kiếm (video.frames), không dùng all_frames
+      const resultFrames = video.frames || [];
+      if (resultFrames.length === 0) return; // Bỏ qua nếu không có frame nào trong kết quả
+
       const title = document.createElement("h3");
       title.className = "video-title";
-      title.textContent = `Video: ${
-        video.video_id
-      } (Score: ${video.video_score.toFixed(3)})`;
+      title.textContent = `Video: ${video.video_id} (Score: ${video.video_score.toFixed(3)}) - ${resultFrames.length} frames found`;
       videoGroup.appendChild(title);
 
+      // Hiển thị frame đầu tiên trong kết quả tìm kiếm
       let groupIndex = 0;
       const mainImg = document.createElement("img");
-      const bestFrame = video.frames?.length > 0 ? video.frames[0].path : null;
-
-      if (
-        bestFrame &&
-        Array.isArray(video.all_frames) &&
-        video.all_frames.length
-      ) {
-        groupIndex = video.all_frames.indexOf(bestFrame);
-        if (groupIndex === -1) groupIndex = 0;
-        mainImg.src = addHost(video.all_frames[groupIndex]);
-      } else if (Array.isArray(video.all_frames) && video.all_frames.length) {
-        mainImg.src = addHost(video.all_frames[groupIndex]);
-      }
-
+      mainImg.src = addHost(resultFrames[groupIndex].path);
       mainImg.className = "main-frame";
       mainImg.dataset.videoId = video.video_id;
-      mainImg.dataset.pathNormalized = video.all_frames?.[groupIndex] || "";
+      mainImg.dataset.pathNormalized = resultFrames[groupIndex].path;
 
       videoGroup.appendChild(mainImg);
 
-      // Nút điều hướng
+      // Nút điều hướng - chỉ navigate trong các frame KẾT QUẢ
       const prevBtn = document.createElement("button");
       prevBtn.textContent = "<";
       prevBtn.className = "nav-btn left-btn";
@@ -325,42 +315,40 @@ async function submit(session_id, evaluation_id, body) {
 
       function updateMainImg(newIndex) {
         groupIndex = newIndex;
-        const p = video.all_frames[groupIndex];
-        mainImg.src = addHost(p);
-        mainImg.dataset.pathNormalized = p;
+        const frame = resultFrames[groupIndex];
+        mainImg.src = addHost(frame.path);
+        mainImg.dataset.pathNormalized = frame.path;
         renderThumbs();
       }
 
       prevBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (video.all_frames?.length > 0) {
-          updateMainImg(
-            (groupIndex - 1 + video.all_frames.length) % video.all_frames.length
-          );
+        if (resultFrames.length > 0) {
+          updateMainImg((groupIndex - 1 + resultFrames.length) % resultFrames.length);
         }
       });
 
       nextBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (video.all_frames?.length > 0) {
-          updateMainImg((groupIndex + 1) % video.all_frames.length);
+        if (resultFrames.length > 0) {
+          updateMainImg((groupIndex + 1) % resultFrames.length);
         }
       });
 
       videoGroup.appendChild(prevBtn);
       videoGroup.appendChild(nextBtn);
 
-      // Thumbnails lân cận
+      // Thumbnails - chỉ hiển thị các frame có trong KẾT QUẢ lân cận
       const thumbsContainer = document.createElement("div");
       thumbsContainer.className = "neighbor-frames";
       videoGroup.appendChild(thumbsContainer);
 
       function renderThumbs() {
         thumbsContainer.innerHTML = "";
-        const list = video.all_frames || [];
-        const total = list.length;
+        const total = resultFrames.length;
         if (!total) return;
 
+        // Hiển thị tối đa 5 thumbnails (2 trước, hiện tại, 2 sau)
         let start = Math.max(0, groupIndex - 2);
         let end = Math.min(total - 1, groupIndex + 2);
         if (end - start < 4) {
@@ -370,11 +358,11 @@ async function submit(session_id, evaluation_id, body) {
 
         for (let i = start; i <= end; i++) {
           const thumb = document.createElement("img");
-          const p = list[i];
-          thumb.src = addHost(p);
+          const frame = resultFrames[i];
+          thumb.src = addHost(frame.path);
           if (i === groupIndex) thumb.classList.add("active");
           thumb.dataset.videoId = video.video_id;
-          thumb.dataset.pathNormalized = p;
+          thumb.dataset.pathNormalized = frame.path;
           thumb.addEventListener("click", (e) => {
             e.stopPropagation();
             updateMainImg(i);
