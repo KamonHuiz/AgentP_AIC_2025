@@ -783,14 +783,18 @@ await submit(session_id,evaluation_id,body);
           // Append nội dung vào input có id "TRAKE_input"
           const inputElement = document.getElementById("TRAKE_input");
 
-          // Kiểm tra và xóa dấu phẩy cuối cùng nếu có
-          let currentValue = inputElement.value;
-          if (currentValue.endsWith(',')) {
-            currentValue = currentValue.slice(0, -1); // Xóa dấu phẩy cuối cùng
-          }
+        // Kiểm tra và xóa dấu phẩy cuối cùng nếu có
+        let currentValue = inputElement.value;
+        if (currentValue.endsWith(',')) {
+          currentValue = currentValue.slice(0, -1); // Xóa dấu phẩy cuối cùng
+        }
 
-          // Thêm frameText vào input
-          inputElement.value = currentValue + frameText + ",";  // Đặt giá trị của input thành frameText với dấu phẩy ở cuối
+        // Nếu input có nội dung, thêm dấu cộng trước frameText, nếu không thì chỉ thêm frameText
+        if (currentValue) {
+          inputElement.value = currentValue + "," + frameText;  // Thêm dấu cộng giữa các giá trị
+        } else {
+          inputElement.value = frameText;  // Nếu input trống, chỉ thêm frameText
+        }
 
           setTimeout(() => {
             ytCopyBtn.textContent = originalText;
