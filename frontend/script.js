@@ -861,3 +861,14 @@ document.getElementById("clear-btn").addEventListener("click", () => {
     trakeInput.value = "";
     qaInput.value = "";
 });
+
+document.getElementById("clearall-btn").addEventListener("click", () => {
+    // Lấy các ô input
+    const ocrinput = document.getElementById("ocr-input");
+    const asrinput = document.getElementById("color-input");
+    const clipinput = document.getElementById("query-input");
+    // Xóa giá trị trong các ô input
+    ocrinput.value = "";
+    asrinput.value = "";
+    clipinput.value = "";
+});
