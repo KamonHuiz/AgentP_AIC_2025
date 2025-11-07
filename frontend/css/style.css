@@ -86,7 +86,7 @@ body {
 
 .control-group input {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
@@ -288,18 +288,25 @@ body {
   padding: 12px;
 
   /* Giữ nguyên kích thước modal ban đầu */
-  width: min(1100px, 90vw);
+  width: min(1200px, 90vw);
   height: min(700px, 90vh);
 
   position: relative;
 }
 
+.modal-content {
+    position: absolute; /* Để phần tử modal-content có thể di chuyển tự do trong modal-panel */
+    top: 0px; /* Đặt nó sát với viền trên của modal-panel */
+    left: 0px; /* Đặt nó sát với viền trái của modal-panel */
+    object-fit: cover; /* Đảm bảo ảnh/video không bị méo khi thay đổi kích thước */
+}
+
 /* Cấu trúc mới cho modal xem ảnh (modal-left/modal-right) */
 .modal-left { /* Đổi tên từ .panel-left */
-  flex: 0 0 30%;
+  flex: 0 0 25%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .modal-main { /* Giữ nguyên các quy tắc cho khung ảnh chính */

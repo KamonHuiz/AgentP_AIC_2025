@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const topkInput = document.getElementById("topk-input");
   const gallery = document.getElementById("gallery");
   const viewModeToggle = document.getElementById("view-mode-toggle");
+  const SubmitButton = document.getElementById("submit-btn");
   let videoData = {};
 
   // Load JSON chứa thông tin video
@@ -58,25 +59,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Hàm gọi API ---
   async function performSearch() {
-    const query = queryInput.value.trim();
+    let query = queryInput.value.trim();
     const k = topkInput.value;
-    const colors = colorInput.value.trim();
-    const ocr = ocrInput.value.trim();
+    let colors = colorInput.value.trim();
+    let ocr = ocrInput.value.trim();
     const modeSelect = document.getElementById("model-select");
     // VẪN GIỮ NGUYÊN LOGIC CỦA CODE 2
     const mode = modeSelect.value || "SIGLIP_COLLECTION"; 
-    if (!query) {
-      alert("Please enter a search query.");
-      return;
+    if(!query){
+      query = "a"
     }
-
+if(!colors){
+      colors = "a"
+    }
+    if(!ocr){
+      ocr = "a"
+    }
     gallery.innerHTML = '<p class="placeholder">Loading...</p>';
 
-    let apiUrl = `${HOST}/search?query=${encodeURIComponent(
-      query
-    )}&k=${k}&mode=${mode}`;
-    if (colors) apiUrl += `&colors=${encodeURIComponent(colors)}`;
-    if (ocr) apiUrl += `&ocr=${encodeURIComponent(ocr)}`;
+    let apiUrl = `${HOST}/search?query=${encodeURIComponent(query)}&k=${k}&mode=${mode}&colors=${encodeURIComponent(colors)}&ocr=${encodeURIComponent(ocr)}`;
+
 
     try {
       const response = await fetch(apiUrl);
@@ -152,6 +154,124 @@ document.addEventListener("DOMContentLoaded", () => {
     const frameId = filename.split(".")[0] || "-";
     return { videoId, frameId };
   }
+  //------------------------get sessionID ------------------------------
+ async function get_sessionID(){
+      console.log("BÊN TRONG FUNCTION!");
+   return fetch("https://eventretrieval.oj.io.vn/api/v2/login", {
+    method: "POST",  // Phương thức POST
+    headers: {
+        "Content-Type": "application/json", // Đảm bảo bạn gửi dữ liệu JSON
+    },
+    body: JSON.stringify({  // Dữ liệu bạn muốn gửi đi
+        username: "team059",
+        password: "ejFN4kxfqw"
+    })
+    })
+    .then(response => response.json())  // Chuyển đổi kết quả trả về thành JSON
+    .then(result => {
+        console.log("✅ Server Responsaaaaaaaae:");
+        console.log("result", result)
+
+        window.session_id = result.sessionId;
+        return result.sessionId;
+    })
+    .catch(error => {
+        console.error("❌ Error:", error);  // In lỗi nếu có
+    });
+}
+
+
+//----------------get evaluationID-----------------------
+
+async function get_evaluationID(session_id){
+      console.log("BÊN TRONG FUNCTION EVALUATIONID!");
+  return fetch(`https://eventretrieval.oj.io.vn/api/v2/client/evaluation/list?session=${session_id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(response => response.json())
+  .then(result => {
+    console.log("✅ Server Response (Evaluation):", result);
+
+    // Kiểm tra xem có evaluation nào active không
+    if (Array.isArray(result) && result.length > 0) {
+      let evaluationId = result[1].id;
+      console.log("🎯 Evaluation ID:", evaluationId);
+
+      // Lưu lại để dùng khi submit bài
+      
+       return evaluationId
+
+      // Tùy chọn: tự động gọi submitAnswer() sau khi lấy được ID
+      // submitAnswer(evaluationId, sessionId);
+    } else {
+      console.warn("⚠️ Không tìm thấy evaluation nào đang ACTIVE!");
+    }
+  })
+  .catch(error => {
+    console.error("❌ Lỗi khi lấy evaluation:", error);
+  });
+
+}
+
+// async function submit(session_id, evaluation_id, body1) {
+//     try {
+//         // Kiểm tra body trước khi gửi đi
+//         if (!body1) {
+//             throw new Error("Body is required");
+//         }
+
+//         console.log("BÊN TRONG FUNCTION SUBMIT!");
+//         console.log(`https://eventretrieval.oj.io.vn/api/v2/submit/${evaluation_id}?session=${session_id}`);
+//         console.log("body: BÊN TRONG SUBMIT", body1);
+
+//         const response = await fetch(`https://eventretrieval.oj.io.vn/api/v2/submit/${evaluation_id}?session=${session_id}`, {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//                 session_id: session_id,
+//                 evaluation_id: evaluation_id,
+//                 body: JSON.stringify(body1)
+//             })
+//         });
+
+//         const result = await response.json(); // Đảm bảo nhận được kết quả từ server
+//         alert("🎉 Nộp bài thành công!",result);
+//     } catch (error) {
+//         console.error("❌ Error:", error);
+//         alert("Lỗi khi gửi dữ liệu lên server!");
+//     }
+// }
+
+async function submit(session_id, evaluation_id, body) {
+    try {
+        const response = await fetch("http://127.0.0.1:5000/submit-data", { // URL của server Python (Flask)
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                session_id: session_id,
+                evaluation_id: evaluation_id,
+                answer_data: body
+            })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            console.log("Nộp bài thành công!", result);
+        } else {
+            console.error("Lỗi khi nộp bài:", result);
+        }
+    } catch (error) {
+        console.error("Error in submitting data:", error);
+    }
+}
+
+
+
 
   // --- Hiển thị theo video ---
   function displayVideoResults(videoResults) {
@@ -267,6 +387,90 @@ document.addEventListener("DOMContentLoaded", () => {
       gallery.appendChild(videoGroup);
     });
   }
+  
+  // --- Submit button ---
+SubmitButton.addEventListener("click", async function() {
+  
+    // Lấy giá trị từ các phần tử giao diện
+    const videoId = document.getElementById("info-videoid").textContent.trim();
+    const frameIndex = parseInt(document.getElementById("info-frame").textContent.trim());
+    console.log("VIDEOID", videoId);
+    console.log("frameIndex", frameIndex);
+     
+    // Lấy dữ liệu từ các ô nhập liệu loại bỏ khoảng trắng
+    const QA = document.getElementById("QA_input").value.trim().toUpperCase();
+    const TRAKE = document.getElementById("TRAKE_input").value.trim();
+
+    // Xác định loại truy vấn
+    let queryType = "video_kis";
+    let dataToSubmit  = "";
+
+
+    if (QA !== "") {
+        queryType = "qa";
+        dataToSubmit = QA;
+    } else if (TRAKE !== "") {
+        queryType = "trake";
+        dataToSubmit = TRAKE;
+    }else{
+      queryType = "video_kis"
+    }
+
+    // Nếu không có dữ liệu nào được nhập
+
+    //--------------------------------------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------------------------------------
+
+ console.log("📡 GỌI API LẤY EVALUATION...");
+
+ console.log("đây là sessionID");
+  let session_id = await get_sessionID()
+  console.log("SESSID",session_id)
+  // Gọi đến Flask backend
+let evaluation_id = await get_evaluationID(session_id)
+// ------------------------------------------------------------------------------
+
+    let videoInfo = videoData[videoId];
+    currentVideoFps = videoInfo.fps;
+    // --- Xây dựng body theo chuẩn DRES ---
+     console.log(currentVideoFps,"FPS BÊN TRONG MOI THG CURRRENTFPS")
+
+    let body = {};
+let start = parseInt(parseInt(frameIndex) / parseInt(currentVideoFps) * 1000);
+console.log("start", start);
+    if (queryType === "video_kis") {
+        body = {
+            answerSets: [{
+                answers: [{
+                    mediaItemName: videoId,
+                    start: `${start}`,  // nếu 30fps: mỗi frame ~33.33ms
+                    end: `${start}`
+                }]
+            }]
+        };
+    } else if (queryType === "qa") {
+        body = {
+            answerSets: [{
+                answers: [{
+                    text: `QA-${dataToSubmit}-${videoId}-${start}`
+                }]
+            }]
+        };
+    } else if (queryType === "trake") {
+        body = {
+            answerSets: [{
+                answers: [{
+                    text: `TR-${videoId}-${dataToSubmit}`
+                }]
+            }]
+        };
+    }
+console.log("BODY TRUCWCS KHI VÀO SUBMIT", body);
+    // --- Gửi dữ liệu đến backend (Flask app.py) ---
+await submit(session_id,evaluation_id,body);
+
+  });
 
   // --- Sự kiện ---
   searchButton.addEventListener("click", performSearch);
@@ -402,6 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const ytFrameNumber = document.getElementById("yt-frame-number");
   const ytFrameTime = document.getElementById("yt-frame-time");
   const ytFrameFps = document.getElementById("yt-frame-fps");
+  console.log(ytFrameFps,"FPS")
   const ytCopyBtn = document.getElementById("yt-copy-btn");
 
   let ytPlayer = null;
@@ -565,6 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Copy button handler
   ytCopyBtn.addEventListener("click", () => {
     const frameText = ytFrameNumber.textContent.replace("Frame: ", "").trim();
+    const ytCopyBtn = document.getElementById("yt-copy-btn");
 
     if (frameText && !isNaN(frameText)) {
       navigator.clipboard
@@ -573,6 +779,19 @@ document.addEventListener("DOMContentLoaded", () => {
           const originalText = ytCopyBtn.textContent;
           ytCopyBtn.textContent = "✅ Copied!";
           ytCopyBtn.style.background = "#ffcc00";
+          
+          // Append nội dung vào input có id "TRAKE_input"
+          const inputElement = document.getElementById("TRAKE_input");
+
+          // Kiểm tra và xóa dấu phẩy cuối cùng nếu có
+          let currentValue = inputElement.value;
+          if (currentValue.endsWith(',')) {
+            currentValue = currentValue.slice(0, -1); // Xóa dấu phẩy cuối cùng
+          }
+
+          // Thêm frameText vào input
+          inputElement.value = currentValue + frameText + ",";  // Đặt giá trị của input thành frameText với dấu phẩy ở cuối
+
           setTimeout(() => {
             ytCopyBtn.textContent = originalText;
             ytCopyBtn.style.background = "#00ff00";
@@ -587,7 +806,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       alert("Frame number not available yet!");
     }
-  });
+});
 
   // Close modal handlers
   youtubeModalClose.addEventListener("click", (e) => {
@@ -631,4 +850,14 @@ document.addEventListener("DOMContentLoaded", () => {
     youtubeIframe.src = "";
   }
   // === HẾT PHẦN THÊM VÀO ===
+});
+// Thêm sự kiện cho nút Clear
+document.getElementById("clear-btn").addEventListener("click", () => {
+    // Lấy các ô input
+    const trakeInput = document.getElementById("TRAKE_input");
+    const qaInput = document.getElementById("QA_input");
+
+    // Xóa giá trị trong các ô input
+    trakeInput.value = "";
+    qaInput.value = "";
 });
