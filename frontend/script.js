@@ -197,7 +197,7 @@ async function get_evaluationID(session_id){
 
     // Kiểm tra xem có evaluation nào active không
     if (Array.isArray(result) && result.length > 0) {
-      let evaluationId = result[1].id;
+      let evaluationId = result[0].id;
       console.log("🎯 Evaluation ID:", evaluationId);
 
       // Lưu lại để dùng khi submit bài

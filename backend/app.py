@@ -7,6 +7,15 @@ import requests
 # IMPORT NOTE: thêm class mới vào src và import nó
 from src import RetrievalSystemSiglipNoCap, OCRRetrievalES, SpeechRetrievalES
 import config
+from googletrans import Translator
+
+class TranslatorModule:
+    def __init__(self):
+        self.translator = Translator()
+    def translate(self, text):
+        translated = self.translator.translate(text,src='vi',dest='en')
+        return translated.text
+    
 
 # --- HELPER FUNCTION ---
 def normalize_scores(scores):
@@ -36,6 +45,7 @@ print("--- Starting Application ---")
 #     collection_name_hnsw=config.COLLECTION_HNSW_SIGLIP
 # )
 OCR_JSON_DIR = r"D:\Workplace\AIC_2025\Data\AUDIO_RECOGNIZATION"
+translator_module = TranslatorModule()
 
 # --- new: SigLip no-caption retriever (class bạn đã viết) ---
 retrieval_service_siglip_nocap = RetrievalSystemSiglipNoCap(
@@ -86,6 +96,7 @@ def search_endpoint():
     try:
         # --- A. Params ---
         query = request.args.get("query")
+        query = translator_module.translate(query)
         ocr = request.args.get("ocr")
         audio = request.args.get("colors")
         
