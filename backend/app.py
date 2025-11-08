@@ -364,7 +364,7 @@ def submit_answer():
     url = f"https://eventretrieval.oj.io.vn/api/v2/submit/{evaluation_id}?session={session_id}"
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, json=answer_data, headers=headers)
-
+    print(answer_data)
     # Kiểm tra phản hồi từ API
     if response.status_code == 200:
         print("Nộp bài thành công!")

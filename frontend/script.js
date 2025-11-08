@@ -396,7 +396,7 @@ console.log("start", start);
     }
 console.log("BODY TRUCWCS KHI VÀO SUBMIT", body);
     // --- Gửi dữ liệu đến backend (Flask app.py) ---
-await submit(session_id,evaluation_id,body);
+alert(await submit(session_id,evaluation_id,body));
 
   });
 
