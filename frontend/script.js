@@ -273,7 +273,7 @@ async function submit(session_id, evaluation_id, body) {
 
 
 
-  // --- Hiển thị theo video (ĐÃ SỬA) ---
+  // --- Hiển thị theo video (HIỂN THỊ TẤT CẢ FRAMES DẠNG GRID) ---
   function displayVideoResults(videoResults) {
     gallery.innerHTML = "";
     if (!videoResults || videoResults.length === 0) {
@@ -286,92 +286,32 @@ async function submit(session_id, evaluation_id, body) {
       const videoGroup = document.createElement("div");
       videoGroup.className = "video-group";
 
-      // CHỈ lấy các frame có trong kết quả tìm kiếm (video.frames), không dùng all_frames
+      // CHỈ lấy các frame có trong kết quả tìm kiếm (video.frames)
       const resultFrames = video.frames || [];
       if (resultFrames.length === 0) return; // Bỏ qua nếu không có frame nào trong kết quả
 
+      // Title
       const title = document.createElement("h3");
       title.className = "video-title";
       title.textContent = `Video: ${video.video_id} (Score: ${video.video_score.toFixed(3)}) - ${resultFrames.length} frames found`;
       videoGroup.appendChild(title);
 
-      // Hiển thị frame đầu tiên trong kết quả tìm kiếm
-      let groupIndex = 0;
-      const mainImg = document.createElement("img");
-      mainImg.src = addHost(resultFrames[groupIndex].path);
-      mainImg.className = "main-frame";
-      mainImg.dataset.videoId = video.video_id;
-      mainImg.dataset.pathNormalized = resultFrames[groupIndex].path;
+      // Container chứa tất cả frames dạng grid
+      const framesGrid = document.createElement("div");
+      framesGrid.className = "frames-grid";
 
-      videoGroup.appendChild(mainImg);
-
-      // Nút điều hướng - chỉ navigate trong các frame KẾT QUẢ
-      const prevBtn = document.createElement("button");
-      prevBtn.textContent = "<";
-      prevBtn.className = "nav-btn left-btn";
-      const nextBtn = document.createElement("button");
-      nextBtn.textContent = ">";
-      nextBtn.className = "nav-btn right-btn";
-
-      function updateMainImg(newIndex) {
-        groupIndex = newIndex;
-        const frame = resultFrames[groupIndex];
-        mainImg.src = addHost(frame.path);
-        mainImg.dataset.pathNormalized = frame.path;
-        renderThumbs();
-      }
-
-      prevBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (resultFrames.length > 0) {
-          updateMainImg((groupIndex - 1 + resultFrames.length) % resultFrames.length);
-        }
+      // Hiển thị TẤT CẢ frames trong kết quả
+      resultFrames.forEach((frame) => {
+        const img = document.createElement("img");
+        img.src = addHost(frame.path);
+        img.className = "grid-frame";
+        img.dataset.videoId = video.video_id;
+        img.dataset.pathNormalized = frame.path;
+        img.loading = "lazy"; // Lazy loading để tăng performance
+        framesGrid.appendChild(img);
       });
 
-      nextBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (resultFrames.length > 0) {
-          updateMainImg((groupIndex + 1) % resultFrames.length);
-        }
-      });
-
-      videoGroup.appendChild(prevBtn);
-      videoGroup.appendChild(nextBtn);
-
-      // Thumbnails - chỉ hiển thị các frame có trong KẾT QUẢ lân cận
-      const thumbsContainer = document.createElement("div");
-      thumbsContainer.className = "neighbor-frames";
-      videoGroup.appendChild(thumbsContainer);
-
-      function renderThumbs() {
-        thumbsContainer.innerHTML = "";
-        const total = resultFrames.length;
-        if (!total) return;
-
-        // Hiển thị tối đa 5 thumbnails (2 trước, hiện tại, 2 sau)
-        let start = Math.max(0, groupIndex - 2);
-        let end = Math.min(total - 1, groupIndex + 2);
-        if (end - start < 4) {
-          start = Math.max(0, end - 4);
-          end = Math.min(total - 1, start + 4);
-        }
-
-        for (let i = start; i <= end; i++) {
-          const thumb = document.createElement("img");
-          const frame = resultFrames[i];
-          thumb.src = addHost(frame.path);
-          if (i === groupIndex) thumb.classList.add("active");
-          thumb.dataset.videoId = video.video_id;
-          thumb.dataset.pathNormalized = frame.path;
-          thumb.addEventListener("click", (e) => {
-            e.stopPropagation();
-            updateMainImg(i);
-          });
-          thumbsContainer.appendChild(thumb);
-        }
-      }
-      renderThumbs();
-
+      videoGroup.appendChild(framesGrid);
       gallery.appendChild(videoGroup);
     });
   }

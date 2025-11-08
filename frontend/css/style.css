@@ -160,7 +160,7 @@ body {
   font-size: 18px;
 }
 
-/* === Chế độ xem theo video (ĐÃ CẢI THIỆN) === */
+/* === Chế độ xem theo video (HIỂN THỊ GRID) === */
 .gallery-video-mode {
   display: flex;
   flex-direction: column;
@@ -172,10 +172,8 @@ body {
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.07);
-  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .video-title {
@@ -187,84 +185,36 @@ body {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
   box-sizing: border-box;
-  word-wrap: break-word; /* ✅ THÊM: Cho phép xuống dòng */
-  line-height: 1.5; /* ✅ THÊM: Dễ đọc hơn */
+  word-wrap: break-word;
+  line-height: 1.5;
 }
 
-/* Ảnh chính trong chế độ video */
-.main-frame {
-  width: min(80%, 480px);
-  height: auto;
-  object-fit: contain;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: transform 0.2s; /* ✅ THÊM */
-}
-
-.main-frame:hover {
-  transform: scale(1.02); /* ✅ THÊM */
-}
-
-/* Thumbnails lân cận trong chế độ video */
-.neighbor-frames {
-  display: flex;
-  justify-content: center; /* ✅ THÊM: Căn giữa */
-  gap: 8px;
+/* ✅ THÊM MỚI: Grid container cho các frames */
+.frames-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Tự động chia cột */
+  gap: 12px; /* Khoảng cách giữa các ảnh */
   width: 100%;
-  margin-top: 10px;
-  flex-wrap: wrap; /* ✅ THÊM: Xuống dòng nếu cần */
-  padding: 5px 0; /* ✅ THÊM */
 }
 
-.neighbor-frames img {
-  width: 80px;
-  height: 45px;
+/* ✅ THÊM MỚI: Style cho mỗi frame trong grid */
+.grid-frame {
+  width: 100%;
+  height: 150px; /* Chiều cao cố định */
   object-fit: cover;
-  border-radius: 4px;
-  border: 2px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
-  flex-shrink: 0; /* ✅ THÊM: Không co lại */
-  transition: all 0.2s; /* ✅ THÊM */
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.neighbor-frames img:hover {
-  border-color: #aaa; /* ✅ THÊM */
-  transform: scale(1.1); /* ✅ THÊM */
+.grid-frame:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.neighbor-frames img.active {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 8px rgba(26, 115, 232, 0.5); /* ✅ THÊM: Shadow cho active */
-}
-
-/* Nút điều hướng video (Prev/Next) */
-.video-group .nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  font-size: 20px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  z-index: 10;
-  border-radius: 4px;
-}
-
-.video-group .nav-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-}
-
-.video-group .left-btn {
-  left: 20px;
-}
-
-.video-group .right-btn {
-  right: 20px;
-}
+/* ❌ XÓA: Không cần các class này nữa */
+/* .main-frame, .neighbor-frames, .nav-btn trong video-group */
 
 /* === Overlay modal (Modal Xem Ảnh Lớn) === */
 .modal {
